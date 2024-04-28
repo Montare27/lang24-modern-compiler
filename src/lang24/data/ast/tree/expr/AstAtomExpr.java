@@ -22,7 +22,7 @@ public class AstAtomExpr extends AstExpr {
 		INT,
 		/** Constant of type {@code ^char}. */
 		STR,
-		/** Constant of a pointer type. nil. */
+		/** Constant of a pointer type. */
 		PTR,
 	};
 

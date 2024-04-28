@@ -3,7 +3,6 @@ package lang24.data.imc.code.stmt;
 import java.util.*;
 
 import lang24.common.logger.*;
-import lang24.common.report.Report;
 import lang24.data.imc.visitor.*;
 
 /**
@@ -34,10 +33,8 @@ public class ImcSTMTS extends ImcStmt {
 	public void log(Logger logger) {
 		logger.begElement("imc");
 		logger.addAttribute("instruction", "STMTS");
-		for (int s = 0; s < stmts.size(); s++) {
-			ImcStmt stmt = stmts.get(s);
-			stmt.log(logger);
-		}
+		for (int s = 0; s < stmts.size(); s++)
+			stmts.get(s).log(logger);
 		logger.endElement();
 	}
 

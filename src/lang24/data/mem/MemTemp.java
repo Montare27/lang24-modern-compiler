@@ -1,7 +1,5 @@
 package lang24.data.mem;
 
-import lang24.common.report.Report;
-
 /**
  * A temporary variable.
  *

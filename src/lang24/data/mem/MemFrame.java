@@ -28,7 +28,7 @@ public class MemFrame implements Loggable {
 	public final MemTemp FP;
 
 	/** The register to hold the return value. */
-	public MemTemp RV;
+	public final MemTemp RV;
 
 	/**
 	 * Constructs a new frame with no temporary variables and no saved registers.

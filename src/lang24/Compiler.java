@@ -12,6 +12,7 @@ import lang24.phase.seman.*;
 import lang24.phase.memory.*;
 import lang24.phase.imcgen.*;
 import lang24.phase.imclin.*;
+import lang24.phase.asmgen.*;
 
 /**
  * The LANG'24 compiler.
@@ -27,7 +28,7 @@ public class Compiler {
 
 	/** All valid phases name of the compiler. */
 	private static final Vector<String> phaseNames = new Vector<String>(
-			Arrays.asList("none", "all", "lexan", "synan", "abstr", "seman", "memory", "imcgen"));
+			Arrays.asList("none", "all", "lexan", "synan", "abstr", "seman", "memory", "imcgen", "imclin", "asmgen"));
 
 	/** Names of command line options. */
 	private static final HashSet<String> cmdLineOptNames = new HashSet<String>(
@@ -177,18 +178,7 @@ public class Compiler {
 
 				// Memory layout.
 				try (Memory memory = new Memory()) {
-
-					// todo: WARNING ZONE. We changed the precedence
-					Report.info("Precedence 1");
-					MemArgument memArgument = new MemArgument(0, 0);
-					memArgument.precedence = 1;
-					Abstr.tree.accept(new MemEvaluator(), memArgument);
-
-					Report.info("Precedence 2");
-					memArgument = new MemArgument(0, 0);
-					memArgument.precedence = 2;
-					Abstr.tree.accept(new MemEvaluator(), memArgument);
-
+					Abstr.tree.accept(new MemEvaluator(), null);
 					AbstrLogger logger = new AbstrLogger(memory.logger);
 					logger.addSubvisitor(new SemAnLogger(memory.logger));
 					logger.addSubvisitor(new MemLogger(memory.logger));
@@ -220,6 +210,14 @@ public class Compiler {
 					}
 				}
 				if (cmdLineOptValues.get("--target-phase").equals("imclin"))
+					break;
+
+				// Machine code generation.
+				try (AsmGen asmgen = new AsmGen()) {
+					asmgen.genAsmCodes();
+					asmgen.log();
+				}
+				if (cmdLineOptValues.get("--target-phase").equals("amsgen"))
 					break;
 
 				break;
