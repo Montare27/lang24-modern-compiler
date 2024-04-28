@@ -1,0 +1,17 @@
+main(): void = {
+
+    s.a = 12;
+
+    <char>y = 'a';
+
+    #x = x + 2 *x
+    #x = 5 + 2;
+    #y[12] = 128;
+    #pointer^ = 32;
+}
+{
+    #x: int
+    y: [32]int
+    #pointer: ^int
+    s: {a: int, b: int}
+}

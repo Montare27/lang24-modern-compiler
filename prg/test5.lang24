@@ -1,0 +1,31 @@
+t = (x: int, y: char, z: ^void)
+tt = {x: int, y: (x: int, y: int)}
+
+main(x: int, y: ^^int): void = {
+	x.a = 0;
+	x.b = 0;
+	x.c = 0;
+	y^^ = sizeof(t) + sizeof(tt);
+
+} {
+	x: (a: int, b: int, c: int)
+	
+	f(x: int, y: int, z: int): int = {
+		if x == y then
+			if x == z then
+				x = y + z;
+	
+		if x == y then
+			x = y;
+		else
+			x = z;
+
+		if x == y then
+			if x == z then
+				x = 42;
+			else
+				x = <int>'*';
+	}
+} 
+
+

@@ -1,0 +1,365 @@
+##################################################
+############## FUNCTION DEFINITIONS ##############
+##################################################
+fun1 (par1: ^^^^[1]^void, PointersOnly: typePointer1): int
+fun2 (): int
+fun3 (): char
+fun4 (): bool
+fun5 (): void
+fun6 (): ^void
+fun7 (): ^[1]^void
+fun8 (): ^(id: [1]{i: ^void})
+
+fun9 (bla: ^char): ^char = {
+    varInt = 3;
+    #typeChar = 'a';
+    #typeBool = true;
+}
+
+#funif (): int = {
+#    if (4 == 5) then
+#    #    3 = 4;
+#    if ('a' != 'b') then
+#        3 = 4;
+#}
+
+#funIfElse (): bool = {
+#    if (4 == 5) then
+#        3 = 4;
+#    else
+#        if ('a' != 'b') then
+#            3 = 4;
+#        else
+#            3 = 3;
+#}
+
+#funWhile (a:int): char = {
+#    while (4 == 5):
+#        3 = 4;
+#    while ('a' != 'b'):
+#        while (1 > -1):
+#            while (varInt < 10):
+#                varInt = varInt + 1;
+#}
+
+funBinExpr1 (i: int): int = {
+    if (i == 0) then return 0;
+    if (true and true) then return 1;
+    if (true or false) then return 2;
+    if (true and false) then return 3;
+    if (not false) then return 4;
+    if (false) then varInt = 1 + 2 / 3 - 100 * 4 % 5;
+    if ( not ('a' < '0')) then return 5;
+    if ( not ('a' <= '0')) then return 5;
+    #=if ( not ('a' > 0)) then return 5;                         # Error: Type mismatch
+    if ( not (^varStr >= ^varStr)) then return 5;
+
+    varInt = varArr[0];
+    varChar = varArrChar[5];
+    #varChar = varArr[0];                                       # Error: Type mismatch
+    varArrArr1[0][0] = 1;
+
+    varArrArr1[0][0] = varArrArr2[0][0];
+    #varArrArr1[0][0] = varArrArr3[1][0];                        # Error: Type mismatch
+
+    varChar = varStr.id;
+    varStrStr.str.str = varUniUni.uni.uni;
+
+    varStrStrStr.str.str.str = varUniUniUni.uni.uni.uni;
+    varDefStrRec.str.str.str.i = varDefUniRec.uni.uni.uni.j;
+    #varChar = varUniUni.uni.uni;                                 # Error: Type mismatch
+    #varInt = varStr.id;                                        # Error: Type mismatch
+
+    varInt = <int>'b';
+    #varInt = <int>^'b';
+    varInt = <int>^varDefUniRec;
+    #varInt = <int>^'b';
+    varInt = <int>^varDefUniRec.uni.uni.uni.j;
+
+    varInt = sizeof(^^{test: (struct: ^[100]^char)});
+    return i + 1 * 7;
+}
+{
+    varArrArr1: tipArrArr1
+    varArrArr2: tipArrArr2
+    varArrArr3: tipArrArr3
+
+    varStrStr: tipStrStr
+    varUniUni: tipUniUni
+
+    varStrStrStr: tipStrStrStr
+    varUniUniUni: tipUniUniUni
+
+    voidFun(string: ^char): void = {
+        return none;
+    }
+
+    varDefStrRec: (str: (str: (str: (i: int))))
+    varDefUniRec: {uni: {uni: {uni: (j: int)}}}
+}
+
+funReturn1 (): int = { return 3; }
+funReturn2 (): ^{a: int} = { return var1; } { var1: ^{a: int}}
+funReturn3 (): ^{a: int} = { return var1; } { var1: ^{a: int}}
+funReturnRec1 (): ^char = {
+    return "test";
+}
+{
+    funReturnRec2 (): ^[4]int = {
+        return varArr;
+    }
+    varArr: ^[4]int
+        funReturnRec3 (): ^char = {
+            return "test";
+    }
+}
+
+funParTest (a: int, b: char, c: ^char, d: bool, e: ^void, f: ^[1]int, g: ^[1]char, h: ^int, i: ^{id: int}, j: ^(id: char)): typeInt = {
+    varInt = funParTest(funParTest(42, 'a', "test", true, ^varVoid, ^varArr, ^varArrChar, varPtr, ^varUni, ^varStr), 'a', "test", true, ^varVoid, ^varArr, ^varArrChar, varPtr, ^varUni, ^varStr);
+    #varVoid = ^najblBrezveznaFunkcija();
+    return 14;
+}
+{
+    najblBrezveznaFunkcija(): void = return none;
+}
+
+funReturnPointer (): ^{a: (i: (jou: ^char))} = {
+    return varPtr;
+}
+{
+    varPtr: ^{a: (i: (jou: ^char))}
+}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# ~~~~~~~~~~~~~~~~ ERRORS ~~~~~~~~~~~~~~~~ #
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+#funErr1 (): [1]int
+#funErr2 (): [1]^int
+#funErr3 (): [1]^void
+#funErr4 (): ^[1]void
+
+#funIfErr (): int = { if 14 then 3;}
+#funIfElseErr (): bool = { if (4 == 5) then 3 = 4; else if ('a' != 'b') then 3 != 4; else 3 = 3; }
+#funWhileErr1 (): char = { while (4 == '5'): 3 = 4; while ('a' != 'b'): 3 = 4; }
+#funWhileErr2 (): char = { while (4 == 5): 3 = 4; while ('a' != 'b'): typeBool = 4; }
+#funReturnErr1 (): ^{a: int} = { return 3; }
+#funReturnErr2 (): ^int = { return ^^3; }
+#########################################################
+############## END OF FUNCTION DEFINITIONS ##############
+#########################################################
+
+
+
+
+
+##################################################
+############## VARIABLE DEFINITIONS ##############
+##################################################
+varDefn1: int
+varDefn2: typeDefn1
+varDefn3: typeDefn2
+varDefn4: typeDefn3
+varDefn5: typeDefnChain
+varDefn6: bool
+varDefn7: char
+varDefn8: ^void
+varDefn9: selfCycle1
+
+varInt: int
+varChar: char
+varString: ^char
+varBool: bool
+varVoid: ^void
+varArr: [1]int
+varArrChar: [1]char
+varPtr: ^int
+varUni: {id: int}
+varStr: (id: char)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# ~~~~~~~~~~~~~~~~ ERRORS ~~~~~~~~~~~~~~~~ #
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+#varVoid: void
+
+#varDefnErrs: typerVoider
+#typerVoider = void
+#########################################################
+############## END OF VARIABLE DEFINITIONS ##############
+#########################################################
+
+
+
+
+##############################################
+############## TYPE DEFINITIONS ##############
+##############################################
+typeDefn5 = [1]typeDefn4
+typeDefn4 = [9223372036854775807]char
+
+typeDefnStruct2 = (id: int, j: [4]char)
+typeDefnStruct3 = { sive:{ sive:{ sive:int } }, recur:{ sive:int } }
+typeDefnStruct4 = (struct: int, i: char, j: bool, k: ^typeDefnStruct3)
+typeDefnStruct5 = { I: typeDefn1, j: (i: ^{i: bool})}
+typeDefnStruct6 = { voider: ^void }
+typeDefnMegaUninon = (struct: (be: int), union: ^{ca: ^void}, external: typeDefnStruct1)
+typeDefnMegaPointer = ^^^^^^^^^^typeDefnMegaUninon
+typeDefnSelfPointer = ^typeDefnSelfPointer
+
+typeDefnStruct7 = (struct: int, i: char, j: bool, k: typeDefnStruct22)
+typeDefnStruct1 = (struct: int, i: char, j: bool)
+typeDefnStruct22 = typeDefnStruct1
+
+typeDefnStructSelfRec = (struct: (new: ^typeDefnStructSelfRec))
+
+typeDefnTest1 = int
+typeDefnTest2 = typeDefnTest1
+typeDefnTest3 = typeDefnTest2
+typeDefnTest4 = {i: int, j: typeDefnTest2}
+typeDefnTest5 = {i: int, j: ^typeDefnTest5}
+
+typeDefnDataType1 = int
+typeDefnDataType2 = char
+typeDefnDataType3 = bool
+typeDefnDataType4 = void
+typeDefnDataType5 = ^int
+typeDefnDataType6 = ^char
+typeDefnDataType7 = ^bool
+typeDefnDataType8 = ^void
+typeDefnDataType9 = [1]int
+typeDefnDataType10 = [1]char
+typeDefnDataType11 = [1]bool
+typeDefnDataType12 = [1]^void
+typeDefnDataType13 = {i: int, j: char}
+typeDefnDataType14 = {i: int, j: bool}
+typeDefnDataType15 = {i: int, j: ^void}
+typeDefnDataType16 = {i: char, j: bool}
+typeDefnDataType17 = {i: char, j: ^void}
+typeDefnDataType18 = {i: bool, j: [10]int}
+typeDefnDataType19 = {i: bool, j: [100]typeDefnDataType1}
+typeDefnDataType20 = [20][20]typeDefn1
+
+typeDefnChain = typeDefn3
+typeDefn1 = int
+typeDefn2 = typeDefn1
+typeDefn3 = typeDefn2
+typeDefn10 = int
+typeDefn11 = bool
+typeDefn12 = char
+typeDefn13 = void
+
+typePointer1 = ^{id: typeFifth}
+typercek = typePointer1
+typePointer2 = ^{id: typercek}
+tojpaSele = typePointer2
+pointer = ^^{id: pointer}
+
+typeFifth = typeFourth
+typeFourth = typeThird
+typeThird = typeSecond
+typeSecond = typeFirst
+typeFirst = int
+
+selfCycle1 = {id: ^{new: [10][42](id: selfCycle1)}}
+norodolgNameType = selfCycle1
+selfCycleTyp = ^selfCycleTyp
+typPointerArrayS = ^[1]{id: typPointerArrayU}
+typPointerArrayU = ^[1](id: typPointerArrayS)
+typPointerTypeName = ^[1]typPointerArrayS
+
+typ3 = typ2
+typ2 = typ1
+typ1 = int
+
+POINTER = ^POINTER
+ultraTest1 = ^(id: {i: ^(test: ^char, no: ^void), arr: [1]^[10]^recVoid3}, arruni: [1]^[2](wth: POINTER))
+
+recVoid3 = void
+recVoid2 = recVoid3
+recVoid1 = recVoid2
+
+fail = ^^^^^(a: ^^^^fail)
+
+tipOdZunaj = vmesniTip
+vmesniTip = {id: tipOdZnotrej}
+tipOdZnotrej = {id: (i: ^[1]tipOdZunaj, j: ^[1]^^tipOdZnotrej)}
+
+tipOdZunaj2 = [10]vmesniTip
+vmesniTip2 = {id: tipOdZnotrej}
+tipOdZnotrej2 = {id: (i: ^tipOdZunaj, j: ^[1]^^tipOdZnotrej)}
+
+typeInt = int
+typeChar = char
+typeBool = bool
+typeVoid = void
+typeArr = [1]int
+typePtr = ^int
+typeUni = {id: int}
+typeStr = (id: char)
+
+tipArrArr1 = [10][10]int
+tipArrArr2 = [10][8]int
+tipArrArr3 = [10][18]bool
+
+tipStrStr = (str: (str: int))
+tipStrStrStr = (str: (str: (str: int)))
+tipUniUni = {uni: {uni: int}}
+tipUniUniUni = {uni: {uni: {uni: int}}}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# ~~~~~~~~~~~~~~~~ ERRORS ~~~~~~~~~~~~~~~~ #
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+#typeDefnErrCycle1 = typeDefnErrCycle2
+#typeDefnErrCycle2 = typeDefnErrCycle1
+
+#typeDefnErrCycle3 = typeDefnErrCycle3
+
+#typeDefnErrArr1 = [-1]int                              # Negative array size
+#typeDefnErrArr2 = [0]typeDefn4                         # Zero array size
+#typeDefnErrArr3 = [1]void                              # Array of void
+#typeDefnErrArr4 = [9223372036854775808]typeDefn4       # Array size too large
+
+#typeDefnStructErr1 = (struct: int, i: char, j: bool, i: int)                   # Duplicate member name
+#typeDefnStructErr2 = (struct: int, i: char, j: bool, k: void)                  # Struct with void member
+
+#typeDefnStruct18 = {struct: int, i: char, j: bool, k: typeDefnStruct19}            # Structs with circular reference
+#typeDefnStruct19 = (struct: int, i: char, j: bool, k: typeDefnStruct18)            # Structs with circular reference
+#typeDefnStructSelfRec10 = (struct: (new: typeDefnStructSelfRec10))                 # Struct with self reference
+
+#typeDefnErrorSturctChain4 = {i: int, k: (j: typeDefnErrorSturctChain3)}            # Structs with circular reference
+#typeDefnErrorSturctChain1 = typeDefnErrorSturctChain4                              # Structs with circular reference
+#typeDefnErrorSturctChain2 = typeDefnErrorSturctChain1                              # Structs with circular reference
+#typeDefnErrorSturctChain3 = typeDefnErrorSturctChain2                              # Structs with circular reference
+
+#typeDefnArrayError1 = [1]typeDefnArrayError1
+#typeDefnArrayError2 = [1]typeDefnArrayError3
+#typeDefnArrayError3 = [1]typeDefnArrayError2
+
+#cycle1Array = [1][1][1]cycle1Union                         # Error - all three form a cycle
+#cycle1Union = {id: (id: {id: (i: [999]cycle1Struct)})}     # Error - all three form a cycle
+#cycle1Struct = (id: (id: cycle1Array))                     # Error - all three form a cycle
+
+#selfCycle2 = {id: {new: [10][42](id: selfCycle2)}}           # Error - selfCycle is not defined yet
+
+#ultraTestErr = ^(id: {i: ^[1]^[10]recVoid1})
+
+#voiderArr1 = ^[1]void                      # Error: all these examples use void as array type
+#voiderArr2 = ^[1]voider                    # Error: all these examples use void as array type
+#voiderUnion1 = ^{id: void}                 # Error: all these examples use void as array type
+#voiderArrayUnion1 = ^{id: ^[1]void}        # Error: all these examples use void as array type
+#voiderUnion2 = ^{id: voider}               # Error: all these examples use void as array type
+#voiderStruct = ^(id: voider)               # Error: all these examples use void as array type
+#voider = avoider                           # Error: all these examples use void as array type
+#avoider = misser                           # Error: all these examples use void as array type
+#misser = void                              # Error: all these examples use void as array type
+#justToBeSure = (id: ^{id: ^[1]voider})        # Error: all these examples use void as array type
+
+#typeArrayPointerVoid = ^[1]void
+#typeUnionVoid = {id: ^[1]void}
+
+#selfArrayCycle = [1]selfArrayCycle
+#####################################################
+############## END OF TYPE DEFINITIONS ##############
+#####################################################

@@ -1,0 +1,21 @@
+getint():int
+putint(i:int):void
+getchar():char
+putchar(c:char):void
+exit():void
+
+main():int=
+	{
+		c=getchar();
+		i=getint();
+
+		while i > 0: {
+		    putint(i);
+		    putchar('\0A');
+		    i = i - 1;
+        }
+		return <int>c;	
+	}
+	{
+		i:int c:char
+	}

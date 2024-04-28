@@ -1,0 +1,32 @@
+t= {x: int, y: int}
+z: t
+tt = (x: (x: int, y: t))
+zz: tt
+
+main(x: char, y: int): void = {
+	x = <char>513;
+	y = <int>x;
+	y = <int>'a';
+	z.x = 1;
+	z.y = 2;
+	zz.x.x = 1;
+	zz.x.y.x = 1;
+} 
+
+main2(): void = {
+	y^ = 1;
+	y = ^x;
+	x = z^^;
+	t.a = y^;
+	t.b = ^x;
+	t.c = z;
+	t.c = ^y;
+	t.a = z^^;
+	z = ^t.b;
+	x = (^y)^^; 
+} {
+	x: int
+	y: ^int
+	z: ^^int
+	t: {a: int, b: ^int, c: ^^int}
+}

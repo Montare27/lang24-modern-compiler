@@ -1,0 +1,42 @@
+bla: int
+blabla: int
+blablabla: ^int
+
+main(x: int, y: char, z: bool, w: int): int = {
+	tmp = 1;
+	tmp2.x = 2 + <int>y;
+	tmp2.y = true and z;
+	tmp = sum(x, <int>y);
+	f1(10000, tmp2.x, y);
+	return f3("xaxa");
+} {
+	tmp: int
+	tmp2: (x: int, y: bool)
+	tmp3: int
+	sum(x: int, y: int): int = return x + y;
+	f1(x: int, y: int, z: char): void = {
+		tmp3 = "stringec";
+		tmp = sum(tmp, tmp2);
+		tmp2 = sum(tmp, tmp2);
+	} {
+		tmp: int
+		tmp2: int
+		tmp3: ^char
+	}
+
+	f2(): int = {
+		return 10;
+	}
+
+	f3(x: ^char): int = {
+		x = "string";
+		y = x;
+		f31();
+		f32(x, y);
+		return 1;
+	} {
+		y: ^char
+		f31(): void = return none;
+		f32(x: ^char, y: ^char): void = return none;
+	}
+}

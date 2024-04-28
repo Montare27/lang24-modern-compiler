@@ -1,0 +1,106 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'antlr'
+}
+
+version = project.project_version
+group = ""
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    antlr("org.antlr:antlr4:$project.antlr_version")
+    implementation("org.antlr:antlr4-runtime:$project.antlr_version")
+}
+
+def mainClass = "${project.src_root_name}.Compiler"
+def lexanDir = "src/${project.src_root_name}/phase/lexan"
+def lexerName = project.lexer_file_name
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+        antlr {
+            srcDirs = [lexanDir]
+        }
+    }
+}
+
+generateGrammarSource {
+    include("${lexerName}.g4")
+    outputDirectory = file(lexanDir)
+}
+
+application {
+    mainClassName = mainClass
+}
+
+jar {
+    // Fat jar (include all dependencies)
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    // Specify the main class when launching the jar
+    manifest {
+        attributes(
+                'Main-Class': mainClass
+        )
+    }
+}
+
+clean {
+    delete file("$lexanDir/${lexerName}.java")
+    delete file("$lexanDir/${lexerName}.java-orig")
+    delete file("$lexanDir/${lexerName}.interp")
+    delete file("$lexanDir/${lexerName}.tokens")
+
+    // Remove generated program xml and html files
+    delete fileTree("prg", {
+        it.include("*.xml", "*.html")
+    })
+}
+
+// todo
+tasks.register('testProgram', Test) {
+    dependsOn(compileJava, compileTestJava)
+    description = "Runs the compiler for specified test file."
+
+    testClassesDirs = sourceSets.main.output.classesDirs
+    classpath = sourceSets.main.runtimeClasspath
+
+    def fileExtension = project.source_file_extension
+    def loggedPhase = project.hasProperty('loggedPhase') ? project.loggedPhase : "all"
+    def targetPhase = project.hasProperty('targetPhase') ? project.targetPhase : "all"
+
+    if (!project.hasProperty('file')) {
+        throw new GradleException("No file specified. Use -Pfile=<file>")
+    }
+
+    def prgDir = file('prg/')
+    // Test the specified file
+    def testFile = file(project.file)
+    println("Testing file: $testFile.name")
+    doLast {
+        println("is file: ${testFile.isFile()}, ends with: ${testFile.name.endsWith(".$fileExtension")} ")
+        if (testFile.isFile() && testFile.name.endsWith(".$fileExtension")) {
+            println("Testing file: $testFile.name")
+
+            // Run the compiler with "--src-file-name=file.name"
+            exec {
+                workingDir prgDir
+                commandLine 'java',
+                        "-cp", classpath.asPath, mainClass,
+                        "--xsl=../lib/xsl/",
+                        "--logged-phase=$loggedPhase",
+                        "--target-phase=$targetPhase",
+                        "--src-file-name=$testFile.name"
+            }
+        }
+    }
+}

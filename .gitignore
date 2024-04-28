@@ -1,0 +1,9 @@
+lib/antlr-4.13.1-complete.jar
+bin
+.idea
+.gradle
+build
+
+src/lang24/phase/lexan/Lang24Lexer.interp
+src/lang24/phase/lexan/Lang24Lexer.java-orig
+src/lang24/phase/lexan/Lang24Lexer.tokens

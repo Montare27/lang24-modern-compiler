@@ -1,0 +1,87 @@
+putint(i:int):void
+putchar(c:char):void
+
+seed:int
+random():int={seed=(seed*281474976710656)%44485709377909;return seed;}
+
+abs(i:int):int=if i<0 then return -i; else return i;
+
+tab:[100]int
+
+# Heapsort error
+heapsort(nums:^[100]int,^cmps:int):void=
+{
+    heapify(100);
+    n=99;
+    while n>0:{
+        t=nums^[0];nums^[0]=nums^[n];nums^[n]=t;
+
+        siftdown(0,n);
+        n=n-1;
+    }
+    return none;
+}
+{
+    n:int t:int
+
+    heapify(n:int):void=
+    {
+        r=n/2;
+        while r>0:{
+            r=r-1;
+            siftdown(r,n);
+        }
+        return none;
+    }
+
+    {r:int}
+
+    siftdown(r:int,n:int):void=
+    {
+        c=2*r+1;
+
+        if c>=n then return none;
+        if c+1 < n then {
+            cmps=cmps+1;
+            if nums^[c+1]>nums^[c] then c=c+1;
+        }
+
+        cmps=cmps+1;
+
+
+        if nums^[r] < nums^[c] then {
+            t=nums^[r];nums^[r]=nums^[c];nums^[c]=t;
+            siftdown(c,n);
+        }
+
+        return none;
+    }
+    {c:int t:int}
+
+
+
+}
+
+main():int=
+	{
+		seed=2024;
+
+		i=0;while i<100:{tab[i]=abs(random())%50;i=i+1;}
+
+
+		i=0;while i<100:{
+		    putint(tab[i]);
+		    if i<99 then putchar(',');
+		    i=i+1;
+        }
+        putchar('\n');
+
+
+		cmps=0;
+		heapsort(^tab,cmps);
+
+		i=0;while i<100:{putint(tab[i]);if i<99 then putchar(',');i=i+1;}putchar('\n');
+
+		return cmps;
+	}
+	{i:int cmps:int}
