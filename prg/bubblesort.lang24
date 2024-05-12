@@ -2,44 +2,37 @@ putint(i:int):void
 putchar(c:char):void
 
 seed:int
-random():int={
-    seed=(seed*281474976710656)%44485709377909;
-    return seed;
-}
+random():int={seed=(seed*281474976710656)%44485709377909;return seed;}
 
-abs(i:int):int=if i<0 then return -i; else return i;
+abs(i:int):int= if i<0 then return -i; else return i;
 
 tab:[100]int
 
 bubblesort(nums:^[100]int,^cmps:int):void=
-{
-    i=100-1;
-    while i>=0:{
-        j=0;
-        while j<i:{
-            if nums^[j]>nums^[j+1] then{
-                t=nums^[j];nums^[j]=nums^[j+1];nums^[j+1]=t;
-            }
-            cmps=cmps+1;
-            j=j+1;
-        }
-        i=i-1;
-    }
-    return none;
-}
-{i:int j:int t:int}
+	{
+		i=100-1;
+		while i>=0:{
+			j=0;
+			while j<i:{
+				if nums^[j]>nums^[j+1] then{
+					t=nums^[j];nums^[j]=nums^[j+1];nums^[j+1]=t;
+				}
+				cmps=cmps+1;
+				j=j+1;
+			}
+			i=i-1;
+		}
+		return none;
+	}
+	{i:int j:int t:int}
 
 main():int=
-{
-    seed=2024;
-    i=0;while i<100:{
-        tab[i]=abs(random()) % 50;
-        i=i+1;
-    }
-
-    i=0;while i<100:{putint(tab[i]);if i<99 then putchar(',');i=i+1;}putchar('\n');
-    cmps=0;bubblesort(^tab,cmps);
-    i=0;while i<100:{putint(tab[i]);if i<99 then putchar(',');i=i+1;}putchar('\n');
-    return cmps;
-}
-{i:int cmps:int}
+	{
+		seed=2024;
+		i=0;while i<100:{tab[i]=abs(random())%50;i=i+1;}
+		i=0;while i<100:{putint(tab[i]);if i<99 then putchar(',');i=i+1;}putchar('\n');
+		cmps=0;bubblesort(^tab,cmps);
+		i=0;while i<100:{putint(tab[i]);if i<99 then putchar(',');i=i+1;}putchar('\n');
+		return cmps;
+	}
+	{i:int cmps:int}

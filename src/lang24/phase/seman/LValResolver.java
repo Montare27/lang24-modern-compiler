@@ -76,8 +76,6 @@ public class LValResolver implements AstFullVisitor<Boolean, Object> {
 		if(arrExpr.arr.accept(this, arg) != null) {
 			return SemAn.isLVal.put(arrExpr, true);
 		}
-
-		Report.info(arrExpr, "Array of arrExpr is not lval: " + arrExpr.arr);
 		return null;
 	}
 

@@ -1,0 +1,94 @@
+putint(x: int): void
+putchar(c: char): void
+
+print(a: int): void = {
+	putint(a);
+	putchar('\n');
+}
+
+main(): void = { 
+	f();
+}
+
+max(x: int, y: int): int = {
+	if x > y then
+		return x;
+	else 
+		return y;
+}
+
+pow(x: int, p: int): int = {
+	ans = 1;
+	while p > 0: {
+		if p % 2 > 0 then
+			ans = ans * x;
+		x = x * x;
+		p = p / 2;	
+	}
+	return ans;
+} { ans: int } 
+
+
+f(): void = {
+	y.x = g();
+	print(y.x);
+	print(x.a);	
+	print(x.b);	
+	print(x.c);	
+	print(x.d);	
+	print(x.e);	
+
+    h(0);
+    putchar('\n');
+
+	return none;
+
+    # should not come here
+	y.x = arr[42] + arr[77] + arr[33];
+} {
+	t = (a: int, b: int, c: int, d: int, e: int)	
+	x: t
+	y: {x: int}
+
+	arr: [5]int
+
+	g(): int = {
+		x.a = 1;
+		return f();
+	} {
+		f(): int = {
+			x.b = 2;
+			return g();
+		} {
+			g(): int = {
+				x.c = 3;
+				return f();
+			} {
+				f(): int = {
+					x.d = 4;
+					return g();				
+				} {
+					g(): int = {
+						x.e = pow(max(-100,2), max(max(-100, 1), max(max(-100, 2), max(max(-100, 3), max(max(-100, 4), max(max(-100, 5), -100))))));
+						return 42;
+					}
+				}
+			}	
+		}
+	}
+
+    h(i: int): void = {
+        n = 12;
+        s = <^char>(<int>"prevajalniki" + i * 8);
+        if i == n - 1 then
+            putchar(s^);
+        else {
+            h(i + 1);
+            putchar(s^);
+        }
+    } {
+        n: int
+        string = ^char
+        s: string
+    }
+}

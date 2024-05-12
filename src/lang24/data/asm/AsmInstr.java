@@ -17,7 +17,7 @@ public abstract class AsmInstr {
 
 	/**
 	 * Returns the list of temporaries defined by this instruction.
-	 * todo: examples
+	 * 
 	 * @return The list of temporaries defined by this instruction.
 	 */
 	public abstract Vector<MemTemp> defs();
@@ -39,7 +39,7 @@ public abstract class AsmInstr {
 	/**
 	 * Returns the set of temporaries that are live in the control flow graph edges
 	 * leading to this instruction.
-	 * todo: figure out
+	 * 
 	 * @return The set of temporaries that are live in the control flow graph edges
 	 *         leading to this instruction.
 	 */
@@ -48,7 +48,7 @@ public abstract class AsmInstr {
 	/**
 	 * Returns the set of temporaries that are live in the control flow graph edges
 	 * leading from this instruction.
-	 * todo: figure out
+	 * 
 	 * @return The set of temporaries that are live in the control flow graph edges
 	 *         leading from this instruction.
 	 */

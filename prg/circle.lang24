@@ -1,0 +1,34 @@
+putchar(c: char): void
+getchar(): char
+
+
+main(): int = {
+	r = 10;
+	draw_circle(r);	
+
+	return 77;
+
+} {
+	r: int
+
+	draw_circle(r: int): void = {
+		y = -r;
+		while -r <= y and y <= r: {
+			x = -r;
+			while -r <= x and x <= r: {
+				dist = x * x + y * y;   
+				if dist <= r * r + r then
+					putchar('*');
+				else
+					putchar(' ');
+				x = x + 1;
+			}
+			y = y + 1;
+			putchar('\n');
+		}
+	} {
+		x: int
+		y: int
+		dist: int
+	}
+}

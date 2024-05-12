@@ -1,0 +1,36 @@
+putint(x: int): void
+putchar(c: char): void
+
+print(x: int): void = {
+    putint(x);
+    putchar('\n');
+}
+
+t = (c: char, b: bool, i: int, p: ^void, s: (s: (s: (s: (s: (s: (s: (u: {u: {u: {u: {s: (s: (hidden: int))}}}}))))))))
+
+x: t
+
+a = (x: int, y: b)
+b = (x: int, y: c)
+c = (x: int, y: d)
+d = ^a
+
+y: a
+
+main(): void = {
+    print(sizeof(t));    
+    x.s.s.s.s.s.s.s.u.u.u.u.s.s.hidden = <int><char><^void>'\2A';
+    print(x.s.s.s.s.s.s.s.u.u.u.u.s.s.hidden);
+
+    y.x = 42;
+    y.y.x = 77;
+    y.y.y.x = 33;
+    y.y.y.y = ^y;
+
+    print(y.y.y.y^.x);
+    print(y.y.y.y^.y.x);
+    print(y.y.y.y^.y.y.x);
+    print(y.y.y.y^.y.y.y^.x);
+
+    none;
+}

@@ -1,0 +1,69 @@
+getint(): int
+putchar(c: char): void
+putint(x: int): void
+
+row: [20]bool
+diag1: [40]bool
+diag2: [40]bool 
+
+
+solve(c: int, n: int): int = {
+	if c == n then
+		return 1;
+
+	cnt = 0;
+	i = 0;
+	
+	while i < n: {
+		if not row[i] and not diag1[i + c] and not diag2[i - c + n] then {
+			row[i] = true;
+			diag1[i + c] = true;
+			diag2[i - c + n] = true;
+			cnt = cnt + solve(c + 1, n);
+			row[i] = false;
+			diag1[i + c] = false;
+			diag2[i - c + n] = false;
+		}			
+		i = i + 1;
+	}
+
+	return cnt;
+
+} {
+	i: int
+	cnt: int
+}
+
+main(): int = {
+    t = getint();
+
+    while t > 0: {
+        n = getint();
+
+        i = 0;
+        while i < n: {
+            row[i] = false;
+            i = i + 1;
+        }
+
+        i = 0;
+        while i < 2 * n: {
+            diag1[i] = false;
+            diag2[i] = false;
+            i = i + 1;
+        }
+
+        ans = solve(0, n);
+        putint(ans);
+        putchar('\n');
+
+        t = t - 1;
+    }
+
+	return 42;
+} {
+    t: int
+	i: int
+	n: int
+	ans: int
+}

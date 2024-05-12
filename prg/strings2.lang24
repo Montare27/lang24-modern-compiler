@@ -1,0 +1,44 @@
+putchar(c: char): void
+putint(x: int): void
+
+print_freq(pc: ^char): void = {
+    i = 0;
+    while i < 255: {
+        arr[i] = 0;
+        i = i + 1;
+    }
+
+    while pc^ != <char>nil: {
+		arr[<int>pc^] = arr[<int>pc^] + 1; 
+		pc = <^char>(<int>pc + 8);
+	}
+
+    i = 0;
+    while i < 255: {
+        if arr[i] > 0 then {
+            putchar(<char>i);
+            putchar(':');
+            putint(arr[i]);
+            putchar('\n');
+        }
+        i = i + 1;
+    }
+} {
+    i: int
+    arr: [255]int
+}
+
+pc: ^char
+
+main(): int = {
+    print_freq("PREV");
+    print_freq("\"\"\"\"\"\\\\\\\\\\");
+    print_freq("\2A\2A\2A\2A");
+
+    putint(<int>'\'' + <int>'\\');
+    putchar('\n');
+    putint(<int>'\2A');
+    putchar('\n');
+
+    return 1;
+}

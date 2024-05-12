@@ -1,0 +1,121 @@
+getint(): int
+putint(x: int): void
+putchar(c: char): void
+
+tree: [1001]int
+MIN: int
+
+
+
+max(x: int, y: int): int = {
+	if x < y then 
+		return y;
+	return x;
+}
+
+min(x: int, y: int): int = {
+	if x < y then 
+		return x;
+	return y;
+}
+
+is_power_of_two(n: int): bool = {
+	while n % 2 == 0:
+		n = n / 2;
+
+	if n > 1 then
+		return false;
+	return true;
+}
+
+
+query(n: int, tl: int, tr: int, a: int, b: int): int = {
+	if a <= tl and tr <= b then
+		return tree[n];
+	if b < tl or tr < a then
+		return MIN;	
+
+	mid = (tl + tr) / 2;
+	return max(query(2 * n, tl, mid, a, b), query(2 * n + 1, mid + 1, tr, a, b));
+} { mid: int }
+
+
+# finds maximum subarray sum where
+# length of the subarray is bounded
+# by given integers 'a' and 'b'
+
+main(): void = {
+	MIN = -1000;
+
+    t = getint();
+
+    while t > 0: {
+        n = getint();
+        a = getint();
+        b = getint();
+        
+        # read array	
+        i = 0;
+        while i < n: {
+            arr[i] = getint();
+            if i == 0 then 
+                psum[i] = arr[i];
+            else
+                psum[i] = psum[i - 1] + arr[i];
+            i = i + 1;
+        }
+        
+        # build seg tree over psum array
+        len = n;
+        while not is_power_of_two(len):
+            len = len + 1; 
+
+        i = 0;
+        while i < len: {
+            if i < n then
+                tree[i + len] = psum[i];
+            else
+                tree[i + len] = MIN;
+            i = i + 1;
+        }
+        
+        i = len - 1;
+        while i > 0: {
+            tree[i] = max(tree[2 * i], tree[2 * i + 1]);
+            i = i - 1;
+        }
+
+        # find answer
+        ans = MIN;
+        i = 0;
+        while i < n: {
+            if i + a - 1 < n then {
+                tmp = query(1, 0, len - 1, i + a - 1, min(i + b - 1, n - 1));
+                if i > 0 then
+                    tmp = tmp - psum[i - 1];
+                ans = max(ans, tmp);
+            } else {
+                # break
+                i = n;
+            }
+            i = i + 1;
+        }
+        
+        putint(ans);
+        putchar('\n');
+    
+        t = t - 1;
+    }	
+
+} {
+    t: int
+	n: int
+	a: int
+	b: int
+	i: int
+	len: int
+	ans: int
+	tmp: int
+	arr: [1001]int
+	psum: [1001]int
+}

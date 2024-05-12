@@ -1,22 +1,25 @@
 package lang24.phase.memory;
 
-import java.lang.foreign.UnionLayout;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import lang24.common.report.Report;
-import lang24.data.ast.tree.*;
-import lang24.data.ast.tree.defn.*;
+import lang24.data.ast.tree.AstNode;
+import lang24.data.ast.tree.AstNodes;
+import lang24.data.ast.tree.defn.AstDefn;
+import lang24.data.ast.tree.defn.AstFunDefn;
+import lang24.data.ast.tree.defn.AstTypDefn;
+import lang24.data.ast.tree.defn.AstVarDefn;
 import lang24.data.ast.tree.expr.*;
 import lang24.data.ast.tree.stmt.*;
 import lang24.data.ast.tree.type.*;
-import lang24.data.ast.visitor.*;
+import lang24.data.ast.visitor.AstFullVisitor;
 import lang24.data.lin.LinDataChunk;
 import lang24.data.mem.*;
 import lang24.data.type.*;
-import lang24.data.type.visitor.*;
 import lang24.phase.imclin.ImcLin;
 import lang24.phase.seman.SemAn;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Computing memory layout: stack frames and variable accesses.
@@ -25,6 +28,9 @@ import lang24.phase.seman.SemAn;
  */
 public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemArgument> {
 
+    // We need to look at the functions in 2 precedences:
+    // 1. Get all the information except for statements:
+    // 2. Run statements
     private static final MemTemp VOID_RETURN_VALUE = new MemTemp();
     private final List<AstFunDefn> calledFunctionsInFunction = new ArrayList<>();
 
@@ -34,16 +40,9 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
         List<AstVarDefn> variables = new ArrayList<>();
 
         for(var node : nodes) {
-            if(node instanceof AstVarDefn)
-                variables.add((AstVarDefn) node);
-            if(node instanceof AstFunDefn)
-                functions.add((AstFunDefn) node);
+            if(node instanceof AstVarDefn) variables.add((AstVarDefn) node);
+            if(node instanceof AstFunDefn) functions.add((AstFunDefn) node);
         }
-
-        // We need to look at the functions in 2 precedences:
-        // 1. Get all the information except for statements:
-        // 2. Run statements
-
 
         long localSize = 0;
 
@@ -51,20 +50,17 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
             for(AstVarDefn variable : variables) {
                 MemResult memResult = variable.accept(this, arg);
                 localSize += memResult.size;
-                if(arg.depth != 0)
-                    arg.offset -= memResult.size;
+                if(arg.depth != 0) arg.offset -= memResult.size;
             }
         }
 
         functions.forEach(f -> f.accept(this, arg));
-
         return new MemResult(localSize);
     }
 
     @Override
     public MemResult visit(AstVarDefn varDefn, MemArgument arg) {
         MemResult typeSize = varDefn.type.accept(this, arg);
-
         MemAccess memAccess = null;
 
         if(arg.depth == 0) {
@@ -73,19 +69,11 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
         }
         else {
             typeSize.size = calculateSizeWithPadding(typeSize.size);
-
-            //WARNING BLOCK. Here was only arg.offset in the 2nd argument
             memAccess = new MemRelAccess(typeSize.size, -1 * (Math.abs(arg.offset) + typeSize.size), arg.depth);
         }
 
         Memory.varAccesses.put(varDefn, memAccess);
         return typeSize;
-    }
-
-
-    @Override
-    public MemResult visit(AstTypDefn typDefn, MemArgument arg) {
-        return typDefn.type.accept(this, arg);
     }
 
 
@@ -107,8 +95,6 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
             }
 
             if (functionDefinition.defns != null) {
-//                arg.depth++;
-
                 MemArgument memArgument = new MemArgument(arg.depth + 1, 0);
                 memArgument.precedence = 1;
                 functionDefinition.defns.accept(this, memArgument);
@@ -118,7 +104,6 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
         }
 
         if(arg.parentFunction != null) {
-            Report.info(functionDefinition, "Parent func of " + functionDefinition.name + " is: " + arg.parentFunction.name);
             Memory.parentFunctions.put(functionDefinition, arg.parentFunction);
         }
 
@@ -142,7 +127,6 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
 
             nestedFunDefinitionList = getChildFunctions(functionDefinition.defns == null ? new AstNodes<>() : functionDefinition.defns);
             if(argsSize != 0 && calledFunctionsInFunction.stream().anyMatch(nestedFunDefinitionList::contains)) {
-                Report.info(functionDefinition, "Contains run nested function");
                 argsSize += 8;
             }
 
@@ -153,9 +137,6 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
 
         MemLabel label = arg.depth == 0 ? new MemLabel(functionDefinition.name) : new MemLabel();
         MemFrame memFrame = new MemFrame(label, arg.depth, localSize, argsSize, size);
-
-        if(SemAn.ofType.get(functionDefinition) instanceof SemVoidType)
-            memFrame.RV = VOID_RETURN_VALUE;
 
         Memory.frames.put(functionDefinition, memFrame);
 
@@ -170,16 +151,6 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
                 .filter(d -> d instanceof AstFunDefn)
                 .map(a -> (AstFunDefn)a)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public MemResult visit(AstFunDefn.AstRefParDefn refParDefinition, MemArgument arg) {
-        return visitParameter(refParDefinition, arg);
-    }
-
-    @Override
-    public MemResult visit(AstFunDefn.AstValParDefn valParDefinition, MemArgument arg) {
-        return visitParameter(valParDefinition, arg);
     }
 
     private MemResult visitParameter(AstFunDefn.AstParDefn parDefinition, MemArgument argument) {
@@ -201,7 +172,11 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
         if(atomExpr.type != AstAtomExpr.Type.STR) return new MemResult(0);
 
         long size = atomExpr.value.length() - 2;
-        Memory.strings.put(atomExpr, new MemAbsAccess(size, new MemLabel()));
+
+        // remove double quotes and add terminator
+        String string = atomExpr.value.substring(1, atomExpr.value.length() - 1) + '\00';
+
+        Memory.strings.put(atomExpr, new MemAbsAccess(size, new MemLabel(), string));
 
         return new MemResult(0);
     }
@@ -220,30 +195,6 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
         return new MemResult(typeResult.size + exprResult.size);
     }
 
-    @Override
-    public MemResult visit(AstCmpExpr cmpExpr, MemArgument arg) {
-        return cmpExpr.expr.accept(this, arg);
-    }
-
-    @Override
-    public MemResult visit(AstNameExpr nameExpr, MemArgument arg) {
-        return new MemResult(0);
-    }
-
-    @Override
-    public MemResult visit(AstPfxExpr pfxExpr, MemArgument arg) {
-        return pfxExpr.expr.accept(this, arg);
-    }
-
-    @Override
-    public MemResult visit(AstSfxExpr sfxExpr, MemArgument arg) {
-        return sfxExpr.expr.accept(this, arg);
-    }
-
-    @Override
-    public MemResult visit(AstSizeofExpr sizeofExpr, MemArgument arg) {
-        return sizeofExpr.type.accept(this, arg);
-    }
 
     @Override
     public MemResult visit(AstCallExpr callExpr, MemArgument arg) {
@@ -297,11 +248,6 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
     }
 
     @Override
-    public MemResult visit(AstExprStmt exprStmt, MemArgument arg) {
-        return exprStmt.expr.accept(this, arg);
-    }
-
-    @Override
     public MemResult visit(AstIfStmt ifStmt, MemArgument arg) {
         MemResult memIfResult = ifStmt.cond.accept(this, arg);
         MemResult memThenResult = ifStmt.thenStmt.accept(this, arg);
@@ -312,10 +258,7 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
         return new MemResult(memThenResult.size + memIfResult.size + memElseResult.size);
     }
 
-    @Override
-    public MemResult visit(AstReturnStmt retStmt, MemArgument arg) {
-        return retStmt.expr.accept(this, arg);
-    }
+
 
     @Override
     public MemResult visit(AstWhileStmt whileStmt, MemArgument arg) {
@@ -331,8 +274,6 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
         SemType type = SemAn.isType.get(arrType);
         if(!(type instanceof SemArrayType))
             throw new Report.Error(arrType, "Arr Type is not actually arr type: " + type);
-
-        Report.info(arrType, "Array Size: " + ((SemArrayType) type).size * calculateSizeWithPadding(elemType.size) + "b");
 
         return new MemResult(((SemArrayType) type).size * calculateSizeWithPadding(elemType.size));
     }
@@ -360,9 +301,9 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
 
     @Override
     public MemResult visit(AstStrType strType, MemArgument arg) {
-
         long totalSize = 0;
         MemArgument argument = new MemArgument(arg.depth == 0 ? -1 : arg.depth, 0, strType);
+
         for (AstRecType.AstCmpDefn cmp : strType.cmps){
             MemResult cmpResult = cmp.accept(this, argument);
             totalSize += cmpResult.size;
@@ -374,7 +315,6 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
 
     @Override
     public MemResult visit(AstUniType uniType, MemArgument arg) {
-
         long maxSize = 0;
 
         MemArgument argument = arg.depth == 0
@@ -388,7 +328,6 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
 
         return new MemResult(maxSize);
     }
-
 
     /**
      *
@@ -422,8 +361,7 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
 
         if(type instanceof AstUniType) {
 
-            if(arg.depth != 0)
-                argument.offset = arg.offset;
+            if(arg.depth != 0) argument.offset = arg.offset;
 
             for (AstRecType.AstCmpDefn cmp : type.cmps){
                 MemResult cmpResult = cmp.accept(this, argument);
@@ -437,9 +375,8 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
                 argument.offset -= cmpResult.size;
             }
         }
-        else {
-            throw new Report.Error("Type: " + type + " is not available to calculate size!!!");
-        }
+        else throw new Report.Error("Type: " + type + " is not available to calculate size!!!");
+
 
         return totalSize;
     }
@@ -476,7 +413,50 @@ public class MemEvaluator implements AstFullVisitor<MemEvaluator.MemResult, MemA
             this.size = size;
         }
     }
+    @Override
+    public MemResult visit(AstFunDefn.AstRefParDefn refParDefinition, MemArgument arg) {
+        return visitParameter(refParDefinition, arg);
+    }
 
+    @Override
+    public MemResult visit(AstFunDefn.AstValParDefn valParDefinition, MemArgument arg) {
+        return visitParameter(valParDefinition, arg);
+    }
+    @Override
+    public MemResult visit(AstReturnStmt retStmt, MemArgument arg) {
+        return retStmt.expr.accept(this, arg);
+    }
+    @Override
+    public MemResult visit(AstExprStmt exprStmt, MemArgument arg) {
+        return exprStmt.expr.accept(this, arg);
+    }
+    @Override
+    public MemResult visit(AstCmpExpr cmpExpr, MemArgument arg) {
+        return cmpExpr.expr.accept(this, arg);
+    }
 
+    @Override
+    public MemResult visit(AstNameExpr nameExpr, MemArgument arg) {
+        return new MemResult(0);
+    }
 
+    @Override
+    public MemResult visit(AstPfxExpr pfxExpr, MemArgument arg) {
+        return pfxExpr.expr.accept(this, arg);
+    }
+
+    @Override
+    public MemResult visit(AstSfxExpr sfxExpr, MemArgument arg) {
+        return sfxExpr.expr.accept(this, arg);
+    }
+
+    @Override
+    public MemResult visit(AstSizeofExpr sizeofExpr, MemArgument arg) {
+        return sizeofExpr.type.accept(this, arg);
+    }
+
+    @Override
+    public MemResult visit(AstTypDefn typDefn, MemArgument arg) {
+        return typDefn.type.accept(this, arg);
+    }
 }

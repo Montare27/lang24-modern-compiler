@@ -1,0 +1,56 @@
+putchar(c : char) : void
+putint(i : int) : void
+
+string = ^char
+napis : string
+
+write_name(name: string) : void = {
+    i = 0;
+    while getchr() != '\00' : {
+        c = getchr();
+        putchar(c);
+        i = i + 1;
+    }
+} {
+    c : char
+    i : int
+
+    getchr() : char = {
+        return <char>(<int> name + i * 8);
+    }
+}
+
+main() : int = {
+    napis = "Hello world\n";
+    write_name(napis);
+
+    i = spec_sum(3);
+    putint(spec_sum(spec_sum(i)));
+
+    putchar('\n');
+    putint(i);
+    putchar('\n');
+    ref(i);
+    putint(i);
+
+    return 0;
+} {
+    i : int
+}
+
+ref(^i : int): void = {
+    i = i + 11;
+    putint(i);
+    putchar('\n');
+}
+
+spec_sum(i: int) : int = {
+    if i == 0 then {
+        return 0;
+    } else {
+        s = spec_sum(i - 1);
+        return s + i;
+    }
+} {
+    s : int
+}

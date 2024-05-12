@@ -6,6 +6,7 @@ import java.nio.file.attribute.*;
 import java.util.*;
 import lang24.common.report.*;
 import lang24.phase.lexan.*;
+import lang24.phase.livean.LiveAn;
 import lang24.phase.synan.*;
 import lang24.phase.abstr.*;
 import lang24.phase.seman.*;
@@ -178,7 +179,12 @@ public class Compiler {
 
 				// Memory layout.
 				try (Memory memory = new Memory()) {
-					Abstr.tree.accept(new MemEvaluator(), null);
+					MemArgument memArgument = new MemArgument(0, 0);
+					memArgument.precedence = 1;
+					Abstr.tree.accept(new MemEvaluator(), memArgument);
+
+					memArgument.precedence = 2;
+					Abstr.tree.accept(new MemEvaluator(), memArgument);
 					AbstrLogger logger = new AbstrLogger(memory.logger);
 					logger.addSubvisitor(new SemAnLogger(memory.logger));
 					logger.addSubvisitor(new MemLogger(memory.logger));
@@ -196,6 +202,7 @@ public class Compiler {
 					logger.addSubvisitor(new ImcLogger(imcGen.logger));
 					Abstr.tree.accept(logger, "AstDefn");
 				}
+
 				if (cmdLineOptValues.get("--target-phase").equals("imcgen"))
 					break;
 
@@ -203,14 +210,18 @@ public class Compiler {
 				try (ImcLin imclin = new ImcLin()) {
 					Abstr.tree.accept(new ChunkGenerator(), null);
 					imclin.log();
+				}
 
-					if (true) {
+				// Interpreter
+				if (cmdLineOptValues.get("--target-phase").equals("imclin")) {
+					try {
 						Interpreter interpreter = new Interpreter(ImcLin.dataChunks(), ImcLin.codeChunks());
 						System.out.println("EXIT CODE: " + interpreter.run("_main"));
+					} catch (Throwable e) {
+						Report.warning(e.getMessage());
 					}
-				}
-				if (cmdLineOptValues.get("--target-phase").equals("imclin"))
 					break;
+				}
 
 				// Machine code generation.
 				try (AsmGen asmgen = new AsmGen()) {
@@ -218,6 +229,14 @@ public class Compiler {
 					asmgen.log();
 				}
 				if (cmdLineOptValues.get("--target-phase").equals("amsgen"))
+					break;
+
+				// Liveness analysis.
+				try (LiveAn liveAn = new LiveAn()) {
+					liveAn.analysis();
+					liveAn.log();
+				}
+				if (cmdLineOptValues.get("--target-phase").equals("livean"))
 					break;
 
 				break;

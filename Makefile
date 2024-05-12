@@ -34,7 +34,7 @@ all	:
 run:
 	$(MAKE) clean
 	$(MAKE) all
-	if [ -d prg ] ; then $(MAKE) -C prg quicksort TARGETPHASE=imclin ; fi
+	if [ -d prg ] ; then $(MAKE) -C prg bubblesort TARGETPHASE=livean ; fi
 
 deploy:
 	$(MAKE) clean

@@ -55,9 +55,9 @@ public class Interpreter {
 			}
 			this.dataMemLabels.put(dataChunk.label, tempLD(HP, false));
 			if (dataChunk.init != null) {
-				for (int c = 0; c < dataChunk.init.length() - 2; c++)
-					memST(tempLD(HP, false) + 8 * c, (long) dataChunk.init.charAt(c + 1), false);
-				memST(tempLD(HP, false) + 8 * (dataChunk.init.length() - 2), 0L, false);
+				for (int c = 0; c < dataChunk.init.length(); c++)
+					memST(tempLD(HP, false) + 8 * c, (long) dataChunk.init.charAt(c), false);
+				memST(tempLD(HP, false) + 8 * (dataChunk.init.length()), 0L, false);
 			}
 			tempST(HP, tempLD(HP, false) + dataChunk.size, debug);
 		}
@@ -72,8 +72,8 @@ public class Interpreter {
 			for (int stmtOffset = 0; stmtOffset < stmts.size(); stmtOffset++) {
 				if (stmts.get(stmtOffset) instanceof ImcLABEL)
 				{
-					if(((ImcLABEL) stmts.get(stmtOffset)).label.name.equals("L22"))
-						Report.info("Main function");
+//					if(((ImcLABEL) stmts.get(stmtOffset)).label.name.equals("L22"))
+//						Report.info("Main function");
 					jumpMemLabels.put(((ImcLABEL) stmts.get(stmtOffset)).label, stmtOffset);
 				}
 			}
@@ -244,6 +244,20 @@ public class Interpreter {
 
 		@Override
 		public Long visit(ImcMEM imcMem, Object arg) {
+
+			if(imcMem.addr instanceof ImcMEM)
+			{
+//				Report.info("XXXXX");
+				memLD(((ImcMEM) imcMem.addr).addr.accept(this, null));
+			}
+			if(imcMem.addr instanceof ImcNAME)
+			{
+//				Report.info("NAME ADDR: " + imcMem.addr.accept(this, null));
+
+//				ImcMEM mem = new ImcMEM(imcMem.addr);
+//				Report.info("NAME ADDR with MEM: " + memLD(imcMem.addr.accept(this, null));
+//				memLD(((ImcMEM) imcMem.addr).addr.accept(this, null));
+			}
 			return memLD(imcMem.addr.accept(this, null));
 		}
 
@@ -339,7 +353,6 @@ public class Interpreter {
 				return null;
 			}
 
-			Report.info("Dst is: " + imcMove.dst);
 			throw new Report.InternalError();
 		}
 

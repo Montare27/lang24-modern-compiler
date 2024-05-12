@@ -1,0 +1,172 @@
+putint(x: int): void
+putchar(c: char): void
+
+t = (x: int, y: int)
+
+print(a: int): void = {
+	putint(a);
+	putchar('\n');
+}
+
+main(): void = {
+	f1();
+	f2(^s1);
+	f3();
+
+    arr[f4()] = 42;
+    print(arr[9]);
+} {
+	t = (x: int, y: int)
+	s1: t
+	s2: t
+    arr: [10]int
+    h: int
+
+	f1(): void = {
+		s1.x = 7;
+		s1.y = 7;
+
+		f11();
+
+		s2.x = 7;
+		s2.y = 7;		
+
+		print(s1.x);
+		print(s1.y);
+
+        print(s2.x);
+		print(s2.y);
+
+		f12();
+
+		print(s1.x);
+		print(s1.y);
+
+        print(s2.x);
+		print(s2.y);
+
+	} {
+		s2: tt
+		tt = t 
+
+		f11(): void = {
+			s1.x = 3;
+			s1.y = 3;
+		} {
+			s1: t
+		}
+				
+		f12(): void = {
+			s1.x = 4;
+			s1.y = 2;
+			s2.x = s1.x;
+			s2.y = s1.y;
+		}	
+
+	}
+
+	f2(a: ^t): void = {
+		a = ^b;
+		
+		f21();
+		f22();
+
+		print(a^.x);
+        print(b.x);
+
+		print(a^.y);
+        print(b.y);
+
+		s1.x = 8;
+
+		print(s1.x);
+        print(<int><char><^void>sizeof(^void));
+	
+		print(f23());
+        print(<int><char><int>'\n');
+
+		f24(s1.x, ^s1.y);
+
+		print(s1.x);
+        print(s1.y);
+
+	} {
+		b: t	
+	
+		f21(): void = {
+			a^.x = 1;
+			a^.y = 1;
+		}
+
+		f22(): void = {
+			b.x = 1;
+			b.y = 1;
+		}
+
+		f23(): int = {
+			return f231();
+		} {
+			f231(): int = return 10;
+		}
+
+		f24(^x: int, y: ^int): void = {
+			x = 42;
+			y^ = 42;
+		}
+
+	}
+
+	f3(): void = {
+			y = 0;
+			x = ^y;
+			
+			f31(x^, <int>'\n' + 6);			
+			
+			print(x^);
+            print(sizeof({x: int, y: int, z: (x: int, y: int)}));
+	} 
+		{
+		INTEGER = int
+		x: ^INTEGER 		
+		y: int
+
+		f31(^x: int, c: int): void = {
+			if c == <int>'\00' and <char>0 == '\00' then
+				return none;			
+
+			x = x + 1;
+			f32(x, c);
+		}
+		
+		f32(^x: int, c: int): void = {
+			x = x + 1;
+			f33(x, c);
+		}
+		f33(^x: int, c: int): void = {
+			x = x - 1;
+			f31(x, c - 1);
+		}
+	}
+
+    f4(): int = {
+        return f41(4);
+    } {
+        f41(x: int): int = {
+            if x == 0 then
+                return 1;
+            return f411(x - 1) + 1;
+        } {
+            f411(x: int): int = {
+                if x == 0 then
+                    return 2;
+                return f4111(x - 1) + 2;
+            } {
+                f4111(y: int): int = {
+                    if y == 0 then
+                        return x;
+                    return f41(y - 1) + x;
+                }
+            }
+        }
+    }
+}

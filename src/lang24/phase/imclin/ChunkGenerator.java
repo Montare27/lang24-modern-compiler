@@ -13,19 +13,17 @@ import lang24.data.imc.code.stmt.*;
 import lang24.data.imc.visitor.ImcVisitor;
 import lang24.data.lin.LinCodeChunk;
 import lang24.data.lin.LinDataChunk;
-import lang24.data.mem.MemAbsAccess;
-import lang24.data.mem.MemAccess;
-import lang24.data.mem.MemLabel;
-import lang24.data.mem.MemTemp;
+import lang24.data.mem.*;
+import lang24.data.type.SemVoidType;
 import lang24.phase.imcgen.ImcGen;
+import lang24.phase.imcgen.ImcGenerator;
 import lang24.phase.memory.Memory;
+import lang24.phase.seman.SemAn;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Vector;
 
-public class ChunkGenerator implements ImcVisitor<ImcInstr, Object>, AstVisitor<ImcStmt, Object> {
+public class ChunkGenerator implements ImcVisitor<ImcInstr, ChunkArgument>, AstVisitor<ImcStmt, Object> {
 
     /*
         todo:
@@ -45,16 +43,34 @@ public class ChunkGenerator implements ImcVisitor<ImcInstr, Object>, AstVisitor<
      */
     private final Vector<ImcStmt> functionStatementVector = new Vector<>();
 
+    /**
+     * Add return value NONE to function's RV
+     */
+    private void addNoneValueToFunction(AstFunDefn definition, MemLabel exitLabel) {
+        MemFrame memFrame = Memory.frames.get(definition);
+
+        ImcMOVE move = new ImcMOVE(
+                new ImcTEMP(memFrame.RV),
+                ImcGenerator.UNDEFINED_EXPR);
+
+        ImcJUMP jump = new ImcJUMP(exitLabel);  // add jump to function's epilogue
+        functionStatementVector.addAll(Arrays.asList(move, jump));
+    }
+
+    private ImcStmt processStatement(AstStmt statement) {
+        ImcStmt stmts = ImcGen.stmtImc.get(statement);
+        stmts.accept(this, null);
+        return null;
+    }
+
+
     @Override
     public ImcStmt visit(AstNodes<? extends AstNode> nodes, Object arg) {
-       List<AstFunDefn> functions = new ArrayList<>();
-
-       for(var node : nodes) {
-           if(node instanceof AstFunDefn)
-               functions.add((AstFunDefn)node);
+       for(var function : nodes) {
+           if(function instanceof AstFunDefn) {
+                function.accept(this, arg);
+           }
        }
-
-       functions.forEach(f -> f.accept(this, arg));
 
         return null;
     }
@@ -80,29 +96,27 @@ public class ChunkGenerator implements ImcVisitor<ImcInstr, Object>, AstVisitor<
 
         // Get entry and exit labels. Add entry to the vector
         MemLabel entryLabel = ImcGen.entryLabel.get(definition);
-        MemLabel exitLevel = ImcGen.exitLabel.get(definition);
+        MemLabel exitLabel = ImcGen.exitLabel.get(definition);
         functionStatementVector.add(new ImcLABEL(entryLabel));
-
-        // Find new functions we put null if we want to get variables and arg - if functions
-//        if(definition.defns != null)
-//            definition.defns.accept(this, null);
 
         // Fill "functionStatementVector"
         if(definition.stmt != null)
-            definition.stmt.accept(this, arg);
+            definition.stmt.accept(this, null);
 
         if( ImcGen.entryLabel.get(definition) == null || ImcGen.exitLabel.get(definition) == null)
-            throw new Report.Error(definition, "Entry label or Exit lavel is null");
+            throw new Report.Error(definition, "Entry label or Exit label is null");
 
-        //Add exit to the vector after statements and definitions
-        functionStatementVector.add(new ImcLABEL(exitLevel));
+        // add jump to return statement with value none if the function is of type void
+        if(SemAn.ofType.get(definition) instanceof SemVoidType) {
+            addNoneValueToFunction(definition, exitLabel);
+        }
 
         // Add CodeChunk
         ImcLin.addCodeChunk(new LinCodeChunk(
                 Memory.frames.get(definition),
                 functionStatementVector,
                 entryLabel,
-                exitLevel));
+                exitLabel));
 
         // Clear "functionStatementVector"
         functionStatementVector.clear();
@@ -128,55 +142,37 @@ public class ChunkGenerator implements ImcVisitor<ImcInstr, Object>, AstVisitor<
     //return ImcSTMTS
     @Override
     public ImcStmt visit(AstBlockStmt blockStmt, Object arg) {
-        ImcSTMTS stmts = (ImcSTMTS)ImcGen.stmtImc.get(blockStmt);
-
-        stmts.accept(this, null);
-        return null;
+        return processStatement(blockStmt);
     }
 
     //return ImcMoveStmt
     @Override
     public ImcStmt visit(AstAssignStmt assignStmt, Object arg) {
-        ImcMOVE stmt = (ImcMOVE)ImcGen.stmtImc.get(assignStmt);
-
-        stmt.accept(this, null);
-        return null;
+        return processStatement(assignStmt);
     }
 
     //return ImcESTMT
     @Override
     public ImcStmt visit(AstExprStmt exprStmt, Object arg) {
-        ImcStmt stmt = ImcGen.stmtImc.get(exprStmt);
-
-        stmt.accept(this, null);
-        return null;
+        return processStatement(exprStmt);
     }
 
-    //return ImcSTMTS
+    //return ImcSTMTS.
     @Override
     public ImcStmt visit(AstIfStmt ifStmt, Object arg) {
-        ImcSTMTS stmts = (ImcSTMTS)ImcGen.stmtImc.get(ifStmt);
-
-        stmts.accept(this, null);
-        return null;
+        return processStatement(ifStmt);
     }
 
     //return ImcSTMTS
     @Override
     public ImcStmt visit(AstReturnStmt retStmt, Object arg) {
-        ImcSTMTS stmts = (ImcSTMTS)ImcGen.stmtImc.get(retStmt);
-
-        stmts.accept(this, null);
-        return null;
+        return processStatement(retStmt);
     }
 
     //return ImcSTMTS
     @Override
     public ImcStmt visit(AstWhileStmt whileStmt, Object arg) {
-        ImcSTMTS stmts = (ImcSTMTS)ImcGen.stmtImc.get(whileStmt);
-
-        stmts.accept(this, null);
-        return null;
+        return processStatement(whileStmt);
     }
 
     /*
@@ -189,7 +185,7 @@ public class ChunkGenerator implements ImcVisitor<ImcInstr, Object>, AstVisitor<
      * Just traverse sub-statements
      */
     @Override
-    public ImcInstr visit(ImcSTMTS stmts, Object visArg) {
+    public ImcInstr visit(ImcSTMTS stmts, ChunkArgument visArg) {
 
         for(var stmt: stmts.stmts) {
             stmt.accept(this, visArg);
@@ -203,7 +199,7 @@ public class ChunkGenerator implements ImcVisitor<ImcInstr, Object>, AstVisitor<
      * Just add statement
      */
     @Override
-    public ImcInstr visit(ImcJUMP jump, Object visArg) {
+    public ImcInstr visit(ImcJUMP jump, ChunkArgument visArg) {
         functionStatementVector.add(jump);
         return null;
     }
@@ -213,7 +209,7 @@ public class ChunkGenerator implements ImcVisitor<ImcInstr, Object>, AstVisitor<
      * Just add statement
      */
     @Override
-    public ImcInstr visit(ImcLABEL label, Object visArg) {
+    public ImcInstr visit(ImcLABEL label, ChunkArgument visArg) {
         functionStatementVector.add(label);
         return label;
     }
@@ -225,22 +221,29 @@ public class ChunkGenerator implements ImcVisitor<ImcInstr, Object>, AstVisitor<
      * if sub expression is B, U or C
      */
     @Override
-    public ImcInstr visit(ImcCJUMP cjump, Object visArg) {
-        cjump.cond = (ImcExpr) cjump.cond.accept(this, visArg);
+    public ImcInstr visit(ImcCJUMP cjump, ChunkArgument visArg) {
+        ImcExpr result = (ImcExpr) cjump.cond.accept(this, visArg);
+
+        if(!(result instanceof ImcTEMP))  // we want to store ImcTemp in CJUMP condition expression
+            result = storeComplexExpression(result, visArg);
+
+        cjump.cond = result;
         functionStatementVector.add(cjump);
         return null;
     }
 
 
     /**
-     * Traverse expression.
+     * Traverse expression. We assume that it contains only CALL instruction.
+     * Otherwise, it works as before
      * It will return ImcMem with link to recently created variable
      * if sub expression is B, U or C
      */
     @Override
-    public ImcInstr visit(ImcESTMT eStmt, Object visArg) {
-        ImcESTMT newSTMT = new ImcESTMT((ImcExpr) eStmt.expr.accept(this, visArg));
-        functionStatementVector.add(newSTMT);
+    public ImcInstr visit(ImcESTMT eStmt, ChunkArgument visArg) {
+        ImcExpr expr = (ImcExpr) eStmt.expr.accept(this, new ChunkArgument(false));
+        ImcMOVE newMove = new ImcMOVE(new ImcTEMP(new MemTemp()), expr);
+        functionStatementVector.add(newMove);
         return null;
     }
 
@@ -250,9 +253,19 @@ public class ChunkGenerator implements ImcVisitor<ImcInstr, Object>, AstVisitor<
      * if sub expression is B, U or C
      */
     @Override
-    public ImcInstr visit(ImcMOVE move, Object visArg) {
+    public ImcInstr visit(ImcMOVE move, ChunkArgument visArg) {
+
+        ImcExpr dst = null;
+
+        // todo: added to fix pointer expressions
+        if(move.dst instanceof ImcBINOP) {
+            if(visArg == null) visArg = new ChunkArgument(true);
+        }
+
+        dst = (ImcExpr) move.dst.accept(this, visArg);
+
         ImcMOVE newSTMT = new ImcMOVE(
-                (ImcExpr) move.dst.accept(this, 1), // we throw 1 if we expect that there will be
+                dst,
                 (ImcExpr) move.src.accept(this, visArg));
 
         functionStatementVector.add(newSTMT);
@@ -268,87 +281,91 @@ public class ChunkGenerator implements ImcVisitor<ImcInstr, Object>, AstVisitor<
      * Adds to vector ImcMove with the instance on new Temporary variable
      */
     @Override
-    public ImcInstr visit(ImcBINOP binOp, Object visArg) {
+    public ImcInstr visit(ImcBINOP binOp, ChunkArgument visArg) {
         ImcBINOP newExpr = new ImcBINOP(binOp.oper,
             (ImcExpr) binOp.fstExpr.accept(this, visArg),
             (ImcExpr) binOp.sndExpr.accept(this, visArg)
         );
 
-        return storeComplexExpression(newExpr);
+
+        if(visArg != null && visArg.toCreateMove)
+            return storeComplexExpression(newExpr, visArg);
+
+        return newExpr;
     }
 
     /**
      * Almost the same implementation
      */
     @Override
-    public ImcInstr visit(ImcUNOP unOp, Object visArg) {
+    public ImcInstr visit(ImcUNOP unOp, ChunkArgument visArg) {
         ImcUNOP newExpr = new ImcUNOP(unOp.oper,
                 (ImcExpr) unOp.subExpr.accept(this, visArg)
         );
 
-        return storeComplexExpression(newExpr);
+        return storeComplexExpression(newExpr, visArg);
     }
 
     /**
      * Almost the same but we traverse all n arguments
      */
     @Override
-    public ImcInstr visit(ImcCALL call, Object visArg) {
+    public ImcInstr visit(ImcCALL call, ChunkArgument visArg) {
 
         Vector<ImcExpr> args = new Vector<>();
 
         for(var arg : call.args) {
-            args.add((ImcExpr) arg.accept(this, visArg));
+            ImcExpr result = (ImcExpr) arg.accept(this, visArg);
+
+            // we want to store only ImcTemp's in the CALL to make asm instr easier
+            if(!(result instanceof ImcTEMP))
+                result = storeComplexExpression(result, visArg);
+
+            args.add(result);
         }
 
-        ImcCALL newExpr = new ImcCALL(
-                call.label,
-                call.offs,
-                args
-        );
+        ImcCALL newExpr = new ImcCALL(call.label, call.offs, args);
 
-        return storeComplexExpression(newExpr);
+        // if we run it from ESTMT we don't want to create a new part for CALL
+        if(visArg != null && !visArg.toCreateMove) return newExpr;
+
+        return storeComplexExpression(newExpr, visArg);
     }
 
-    private ImcTEMP storeComplexExpression(ImcExpr expr) {
-//        Report.info("MemTemp T" +  + " was created!");
+    private ImcTEMP storeComplexExpression(ImcExpr expr, ChunkArgument argument) {
         ImcTEMP newMem = new ImcTEMP(new MemTemp());
-
-        ImcMOVE imcMOVE = new ImcMOVE(
-                newMem,
-                expr);
-
+        ImcMOVE imcMOVE = new ImcMOVE(newMem, expr);
         functionStatementVector.add(imcMOVE);
-
         return newMem;
     }
 
     /*
-        Simple expressions. We solely return them
+       Simple expressions. We solely return them
      */
+    @Override
+    public ImcInstr visit(ImcMEM mem, ChunkArgument visArg) {
+        ImcExpr expr = (ImcExpr) mem.addr.accept(this, visArg);
+
+        return new ImcMEM(expr);
+    }
 
     @Override
-    public ImcInstr visit(ImcCONST constant, Object visArg) {
+    public ImcInstr visit(ImcCONST constant, ChunkArgument visArg) {
         return constant;
     }
 
     @Override
-    public ImcInstr visit(ImcMEM mem, Object visArg) {
-        return mem;
-    }
-
-    @Override
-    public ImcInstr visit(ImcNAME name, Object visArg) {
+    public ImcInstr visit(ImcNAME name, ChunkArgument visArg) {
         return name;
     }
 
     @Override
-    public ImcInstr visit(ImcSEXPR sExpr, Object visArg) {
+    public ImcInstr visit(ImcSEXPR sExpr, ChunkArgument visArg) {
         return sExpr;
     }
 
     @Override
-    public ImcInstr visit(ImcTEMP temp, Object visArg) {
+    public ImcInstr visit(ImcTEMP temp, ChunkArgument visArg) {
         return temp;
     }
 

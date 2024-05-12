@@ -1,6 +1,9 @@
 package lang24.phase.imclin;
 
 import java.util.*;
+
+import lang24.data.ast.tree.defn.AstFunDefn;
+import lang24.data.imc.code.stmt.ImcStmt;
 import lang24.data.lin.*;
 import lang24.phase.*;
 
@@ -14,6 +17,7 @@ public class ImcLin extends Phase {
 
 	/** All code chinks of the program. */
 	private final static Vector<LinCodeChunk> codeChunks = new Vector<LinCodeChunk>();
+
 
 	/**
 	 * Constructs a new phase for the linearization of intermediate code.

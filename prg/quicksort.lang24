@@ -9,63 +9,37 @@ abs(i:int):int=if i<0 then return -i; else return i;
 tab:[100]int
 
 quicksort(nums:^[100]int,^cmps:int):void=
-{
-    sort(0,99);
-    return none;
-}
-{
-    sort(m:int,n:int):void=
-    {
-
-        if n<=m then return none;
-
-        i=m-1;
-        j=n;
-        v=nums^[n];
-        e=true;
-
-        while e:{
-
-            i=i+1;while nums^[i]<v: {i=i+1;cmps=cmps+1;}cmps=cmps+1;
-
-            j=j-1;while nums^[j]>v: {j=j-1;cmps=cmps+1;}cmps=cmps+1;
-
-            if i >= j then e = false; else {
-                x=nums^[i];
-                nums^[i]=nums^[j];
-                nums^[j]=x;
-            }
-        }
-
-        {
-            x=nums^[i];
-            nums^[i]=nums^[n];
-            nums^[n]=x;
-        }
-
-
-        sort(m,j);
-
-        sort(i+1,n);
-
-        return none;
-    }
-    {
-        i:int j:int v:int x:int e:bool
-    }
-}
+	{
+		sort(0,99);
+		return none;
+	}
+	{
+		sort(m:int,n:int):void=
+			{
+				if n<=m then return none;
+				i=m-1;j=n;v=nums^[n];e=true;
+				while e:{
+					i=i+1;while nums^[i]<v: {i=i+1;cmps=cmps+1;}cmps=cmps+1;
+					j=j-1;while nums^[j]>v: {j=j-1;cmps=cmps+1;}cmps=cmps+1;
+					if i>=j then e=false; else
+					{x=nums^[i];nums^[i]=nums^[j];nums^[j]=x;}
+				}
+				{x=nums^[i];nums^[i]=nums^[n];nums^[n]=x;}
+				sort(m,j);sort(i+1,n);
+				return none;
+			}
+			{
+				i:int j:int v:int x:int e:bool
+			}
+	}
 
 main():int=
-{
-    seed=2024;
-    i=0;while i<100:{tab[i]=abs(random())%50;i=i+1;}
-
-    i=0;while i<100:{putint(tab[i]);if i<99 then putchar(',');i=i+1;}putchar('\n');
-
-    cmps=0;quicksort(^tab,cmps);
-
-    i=0;while i<100:{putint(tab[i]);if i<99 then putchar(',');i=i+1;}putchar('\n');
-
-    return cmps;
-}
-{i:int cmps:int}
+	{
+		seed=2024;
+		i=0;while i<100:{tab[i]=abs(random())%50;i=i+1;}
+		i=0;while i<100:{putint(tab[i]);if i<99 then putchar(',');i=i+1;}putchar('\n');
+		cmps=0;quicksort(^tab,cmps);
+		i=0;while i<100:{putint(tab[i]);if i<99 then putchar(',');i=i+1;}putchar('\n');
+		return cmps;
+	}
+	{i:int cmps:int}

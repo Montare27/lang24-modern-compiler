@@ -1,0 +1,73 @@
+putchar(c: char): void
+
+print_string_literal(pc: ^char): void = {
+
+	k = 0;
+	while k <10: {
+		putchar(pc^);
+		pc = <^char>(<int>pc - 8);
+	    k = k+1;
+	}
+	putchar('\n');
+}{k:int}
+
+swap(^a: char, ^b: char): void = {
+    tmp = a;
+    a = b;
+    b = tmp;
+} { tmp: char }
+
+reverse_string(s: ^string, n: int): void = {
+    i = 0;
+    while i < n / 2: {
+        swap(s^[i], s^[n - i - 1]);
+        i = i + 1;
+    }
+} { i: int }
+
+print_string(s: ^string, n: int): void = {
+    i = 0;
+    while i < n: {
+        putchar(s^[i]);
+        i = i + 1;
+    }
+} { i: int }
+
+string_to_arr(pc: ^char, s: ^string): int = {
+	i = 0;
+    while pc^ != <char>nil: {
+		s^[i] = pc^;
+		pc = <^char>(<int>pc + 8);
+        i = i + 1;
+	}
+    return i;
+} { i: int }
+
+
+pc: ^char
+string = [51]char
+
+main(): int = {
+	#pc = "prevajalniki";
+	pc = "super man";
+	print_string_literal(pc);
+#
+	#pc = "prev\najalniki";
+	#print_string_literal(pc);
+#
+	#pc = "\"prev\" \\ajalniki\\";
+	#print_string_literal(pc);
+#
+	#pc = "\70\72\65\76\61\6A\61\6C\6E\6B\69";
+	#print_string_literal(pc);
+#
+    #pc = "compilers";
+    #l = string_to_arr(pc, ^s);
+    #print_string(^s, l);
+    putchar('\n');
+
+	return 42;
+} {
+    s: string
+    l: int
+}

@@ -1,0 +1,110 @@
+getchar(): char
+putchar(c: char): void 
+putint(x: int): void
+getint(): int
+
+string = [5000]char
+
+a: string
+b: string
+len_a: int
+len_b: int
+
+dp: [5001][5001]int
+
+read(s: ^string): int = {
+	reading = true;	
+	pos = 0;
+
+	while reading: {
+		c = getchar();
+		if c == '\n' then {
+			s^[pos] = '\00';
+			reading = false;
+		} else {
+			s^[pos] = c;
+			pos = pos + 1;	
+		}
+	}
+
+	return pos;
+
+} {
+	c: char
+	reading: bool
+	pos: int
+}
+
+print(s: ^string): void = {
+	pos = 0;
+	while s^[pos] != '\00': {
+		putchar(s^[pos]);
+		pos = pos + 1;
+	}
+} {
+	pos: int
+}
+
+min(a: int, b: int): int = {
+	if a < b then { return a; }
+	return b;
+}
+
+edit_distance(): void = {
+	i = 0;
+	j = 0;
+	while i < len_a + 1: {
+		while j < len_b + 1: {
+			if i == 0 then { dp[i][j] = j; } 
+			else {
+				if j == 0 then { dp[i][j] = i; } 
+				else {
+					if a[i - 1] == b[j - 1] then { cost = 0; } 
+					else { cost = 1; }
+					ins_cost = dp[i - 1][j] + 1;
+					del_cost = dp[i][j - 1] + 1;
+					dp[i][j] = min(dp[i - 1][j - 1] + cost, min(ins_cost, del_cost));
+				}
+			}
+			j = j + 1;
+		}
+		i = i + 1;
+		j = 0;
+	}	
+
+} {
+	i: int
+	j: int
+	cost: int
+	ins_cost: int
+	del_cost: int
+	tmp: int
+}
+
+main(): int = {
+	t = getint();
+    while t > 0: {
+        len_a = read(^a);
+        len_b = read(^b);
+
+        #putint(len_a);
+        #putchar('\n');
+        #putint(len_b);
+        #putchar('\n');
+        
+        #print(^a);
+        #putchar('\n');
+        #print(^b);
+        #putchar('\n');
+
+
+        edit_distance();
+        
+        putint(dp[len_a][len_b]);
+        putchar('\n');
+
+        t = t - 1;
+    }
+
+	return 42;
+} { t: int }

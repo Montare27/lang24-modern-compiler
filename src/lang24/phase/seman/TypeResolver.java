@@ -165,8 +165,6 @@ public class TypeResolver implements AstFullVisitor<SemType, Object/*** TODO OR 
 
 
 		SemType type = SemAn.isType.get(typDefinition.type);
-		if(arg != null && arg.equals(2))
-			System.out.println("Type " + type + " for type " + typDefinition.name + " was received" );
 
 		if(type == null) {
 			if(arg == null || arg.equals(2)) {
@@ -175,10 +173,6 @@ public class TypeResolver implements AstFullVisitor<SemType, Object/*** TODO OR 
 
 			return null;
 		}
-
-//		if(type instanceof SemNameType nameType && !typDefinition.name.equals(nameType.name)) {
-//			throw new Report.Error(typDefinition, "Name Type from rvalue is not defined: " + nameType.name + " " + arg);
-//		}
 
 		return SemAn.isType.put(typDefinition, type);
 	}
@@ -666,7 +660,6 @@ public class TypeResolver implements AstFullVisitor<SemType, Object/*** TODO OR 
 		};
 
 		SemAn.isType.put(atomType, semType);
-		Report.info(atomType, " Atom type " + semType + " was found");
 		return semType;
 	}
 
@@ -676,27 +669,21 @@ public class TypeResolver implements AstFullVisitor<SemType, Object/*** TODO OR 
 	public SemType visit(AstNameType nameType, Object arg) {
 		AstDefn definition = SemAn.definedAt.get(nameType);
 
-		Report.info(nameType, "nameType: " + nameType.name);
-
 		SemType type = null;
 
 		if(_typeDefinitionsInRecursion.contains(nameType.name)) { // if it is cyclic type
 			type = new SemNameType(nameType.name);
-			Report.info("Stop 11");
 		}
 		else { // if it is not a cyclic type
 			if(arg != null && arg.equals(2)) {
-				Report.info("Invoke other definition");
 				definition.accept(this, arg);
 			}
 
 			if(_typeDefinitionsInRecursion.contains(nameType.name)) { // if it is cyclic type
 				type = new SemNameType(nameType.name);
-				Report.info("Stop 22");
 			}
 			else {
 				type = SemAn.isType.get(definition);
-				Report.info("Stop 33");
 			}
 
 			if(type == null && arg != null && arg.equals(2)) {
