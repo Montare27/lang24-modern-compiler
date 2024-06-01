@@ -7,6 +7,7 @@ import java.util.*;
 import lang24.common.report.*;
 import lang24.phase.lexan.*;
 import lang24.phase.livean.LiveAn;
+import lang24.phase.regall.RegAll;
 import lang24.phase.synan.*;
 import lang24.phase.abstr.*;
 import lang24.phase.seman.*;
@@ -29,11 +30,11 @@ public class Compiler {
 
 	/** All valid phases name of the compiler. */
 	private static final Vector<String> phaseNames = new Vector<String>(
-			Arrays.asList("none", "all", "lexan", "synan", "abstr", "seman", "memory", "imcgen", "imclin", "asmgen"));
+			Arrays.asList("none", "all", "lexan", "synan", "abstr", "seman", "memory", "imcgen", "imclin", "asmgen", "livean", "regall"));
 
 	/** Names of command line options. */
 	private static final HashSet<String> cmdLineOptNames = new HashSet<String>(
-			Arrays.asList("--src-file-name", "--dst-file-name", "--target-phase", "--logged-phase", "--xml", "--xsl"));
+			Arrays.asList("--src-file-name", "--dst-file-name", "--target-phase", "--logged-phase", "--xml", "--xsl", "--num-regs"));
 
 	/** Values of command line options indexed by their command line option name. */
 	private static final HashMap<String, String> cmdLineOptValues = new HashMap<String, String>();
@@ -84,6 +85,7 @@ public class Compiler {
 						Report.warning("Command line option '" + opts[optc] + "' ignored.");
 						continue;
 					}
+
 				} else {
 					// Source file name.
 					if (cmdLineOptValues.get("--src-file-name") == null) {
@@ -228,7 +230,8 @@ public class Compiler {
 					asmgen.genAsmCodes();
 					asmgen.log();
 				}
-				if (cmdLineOptValues.get("--target-phase").equals("amsgen"))
+
+				if (cmdLineOptValues.get("--target-phase").equals("asmgen"))
 					break;
 
 				// Liveness analysis.
@@ -238,6 +241,18 @@ public class Compiler {
 				}
 				if (cmdLineOptValues.get("--target-phase").equals("livean"))
 					break;
+
+				// Register Allocation.
+				RegAll.K = Integer.parseInt(cmdLineOptValues.get("--num-regs"));
+				try (RegAll regAll = new RegAll()){
+					regAll.allocate();
+					regAll.log();
+				}
+				if (cmdLineOptValues.get("--target-phase").equals("regall"))
+					break;
+
+
+				// todo: Put it all together
 
 				break;
 			}

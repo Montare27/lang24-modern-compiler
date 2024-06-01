@@ -516,8 +516,8 @@ public class ImcGenerator implements AstFullVisitor<ImcInstr, ImcGenerator.ImcAr
         MemLabel endLabel = new MemLabel();  // label that will be executed after if statement
 
         statements.add(new ImcCJUMP(condition, positiveLabel, negativeLabel)); // add condition
-
         statements.add(new ImcLABEL(negativeLabel));  // add negative part
+
         if (ifStmt.elseStmt != null) {  // add else stmt
             ImcStmt negativeStmt = (ImcStmt)ifStmt.elseStmt.accept(this, arg);
             statements.add(negativeStmt);

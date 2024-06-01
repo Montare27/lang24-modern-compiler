@@ -24,4 +24,7 @@ public class MemTemp {
 		return "T" + temp;
 	}
 
+	public void resetCounter() {
+		count = 0;
+	}
 }

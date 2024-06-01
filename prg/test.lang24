@@ -1,11 +1,18 @@
+main():int = {
 
+    c = 10;
+    a = 0;
 
-main(): int = {
-    i = 3;
-    array[i] = 15;
-    return array[i];
+    while (a < 10) : {
+        b = a + 1;
+        c = c + b;
+        a = 2 * b;
+    }
+
+    return c;
+
 } {
-    array: [10]int
-    i: int
+    a: int
+    b: int
+    c: int
 }
-

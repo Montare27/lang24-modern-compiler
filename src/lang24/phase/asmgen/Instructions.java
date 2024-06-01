@@ -33,7 +33,7 @@ public class Instructions {
     public static String ZSN = "ZSN";
     public static String ZSNP = "ZSNP";
     public static String ZSNN = "ZSNN";
-    public static String BZP = "BZP";
+    public static String BP = "BP";
 
 
     /* Function instructions */

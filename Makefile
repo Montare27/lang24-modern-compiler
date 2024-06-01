@@ -34,7 +34,11 @@ all	:
 run:
 	$(MAKE) clean
 	$(MAKE) all
-	if [ -d prg ] ; then $(MAKE) -C prg bubblesort TARGETPHASE=livean ; fi
+	$(MAKE) run2
+
+
+run2:
+	if [ -d prg ] ; then $(MAKE) -C prg test TARGETPHASE=livean K=4; fi
 
 deploy:
 	$(MAKE) clean

@@ -94,14 +94,15 @@ public class ChunkGenerator implements ImcVisitor<ImcInstr, ChunkArgument>, AstV
     @Override
     public ImcStmt visit(AstFunDefn definition, Object arg) {
 
+        if(definition.stmt == null) return null;
+
         // Get entry and exit labels. Add entry to the vector
         MemLabel entryLabel = ImcGen.entryLabel.get(definition);
         MemLabel exitLabel = ImcGen.exitLabel.get(definition);
         functionStatementVector.add(new ImcLABEL(entryLabel));
 
         // Fill "functionStatementVector"
-        if(definition.stmt != null)
-            definition.stmt.accept(this, null);
+        definition.stmt.accept(this, null);
 
         if( ImcGen.entryLabel.get(definition) == null || ImcGen.exitLabel.get(definition) == null)
             throw new Report.Error(definition, "Entry label or Exit label is null");
