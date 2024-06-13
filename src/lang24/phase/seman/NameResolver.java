@@ -28,8 +28,7 @@ import java.util.stream.Collectors;
 public class NameResolver implements AstFullVisitor<Object, Object> {
 
 	/** Constructs a new name resolver. */
-	public NameResolver() {
-	}
+	public NameResolver() {}
 
 	/** The symbol table. */
 	private final SymbTable symbTable = new SymbTable();
@@ -43,6 +42,13 @@ public class NameResolver implements AstFullVisitor<Object, Object> {
 		}
 	}
 
+	/**
+	 * Finds existed definition by na
+	 * Throws an exception if
+	 * @param locatable
+	 * @param name
+	 * @return
+	 */
 	private AstDefn findDefn(Locatable locatable, String name) {
 		try{
 			return symbTable.fnd(name);
@@ -79,6 +85,11 @@ public class NameResolver implements AstFullVisitor<Object, Object> {
 				funcs.add((AstFunDefn) node);
 		}
 
+
+		// the point is that we add here precedence.
+		// precedence 1 means that we gonna observe only left-hand part of defn
+		// precedence 2 observes the right-hand part of defn
+		// for out task we need to interact only with the precedence 1.
 		types.forEach(t -> t.accept(this, 1));
 		types.forEach(t -> t.accept(this, 2));
 		vars.forEach(v -> v.accept(this, arg));
@@ -97,10 +108,13 @@ public class NameResolver implements AstFullVisitor<Object, Object> {
 
 	@Override
 	public Object visit(AstTypDefn typDefn, Object arg) { // we just pass to the symtable
-		if((int)arg == 1)
+		if((int)arg == 1) {  // precedence 1 - observe left-hand side of the defintion
+
 			insertDefn(typDefn);
-		if((int)arg == 2)
+		}
+		else if((int)arg == 2) {  // precedence 1 - observe right-hand side of the defintion
 			typDefn.type.accept(this, arg);
+		}
 		return null;
 	}
 

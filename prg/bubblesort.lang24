@@ -29,7 +29,11 @@ bubblesort(nums:^[100]int,^cmps:int):void=
 main():int=
 	{
 		seed=2024;
-		i=0;while i<100:{tab[i]=abs(random())%50;i=i+1;}
+		i=0;
+		while i<100:{
+		    tab[i]=abs(random())%50;
+		    i=i+1;
+		}
 		i=0;while i<100:{putint(tab[i]);if i<99 then putchar(',');i=i+1;}putchar('\n');
 		cmps=0;bubblesort(^tab,cmps);
 		i=0;while i<100:{putint(tab[i]);if i<99 then putchar(',');i=i+1;}putchar('\n');

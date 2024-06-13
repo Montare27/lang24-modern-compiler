@@ -1,6 +1,7 @@
 package lang24.phase.asmgen;
 
 import lang24.common.report.Report;
+import lang24.data.asm.AsmInstr;
 import lang24.data.asm.AsmLABEL;
 import lang24.data.asm.AsmMOVE;
 import lang24.data.asm.AsmOPER;
@@ -12,6 +13,7 @@ import lang24.data.mem.MemLabel;
 import lang24.data.mem.MemTemp;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static lang24.phase.asmgen.AsmGen.addInstruction;
@@ -20,13 +22,14 @@ import static lang24.phase.asmgen.AsmGen.addSomeInstructions;
 public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
 
     public static MemTemp FP;
+    public static MemTemp RV;
     private final String one = "1";
     private final String zero = "0";
     private final HashMap<MemTemp, ImcNAME> nameTempMap = new HashMap<>();  // todo: probably we should remove it
 
 
 
-    private AsmOPER generateAsmOper(String oper, InstrArgument... args) {
+    public static AsmOPER generateAsmOper(String oper, InstrArgument... args) {
         Vector<MemTemp> defns = new Vector<>();
         Vector<MemTemp> uses = new Vector<>();
         Vector<MemLabel> jumps = new Vector<>();
@@ -35,7 +38,6 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
 
         int usesCount = 0;
         int defnsCount = 0;
-
 
         for(var arg : argumentList) {
             switch (arg.type) {
@@ -56,7 +58,7 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
         String instr = String.format("%s %s", oper,
                 Arrays.stream(args)
                         .map(InstrArgument::toString)
-                        .collect(Collectors.joining(", ")));
+                        .collect(Collectors.joining(",")));
 
         boolean isMove = (oper.equals(Instructions.ADD) &&                                    // ADD T1 T2 0
                             argumentList.get(0).getValue() instanceof MemTemp &&
@@ -117,6 +119,7 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
             dst = binop.fstExpr.accept(this, move);
             offset = binop.sndExpr.accept(this, move);
         }
+
         else {  // in this case dst, src are temps
             dst = move.dst.accept(this, move);  // we put "move" to make MEM understand extra behaviour
             offset = "0";
@@ -125,14 +128,19 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
 
         src = move.src.accept(this, move);  // don't put any pars
 
+        AsmOPER oper = null;
 
-        Report.info("Move: " + move);
-        Report.info("src: " + src + " dst: " + dst + " offset: " + offset);
-
-        AsmOPER oper = generateAsmOper(instr,
-            new InstrArgument(src),
-            new InstrArgument(dst, InstrArgument.Type.Defn),
-            new InstrArgument(offset));
+        if(instr.equals(Instructions.STO)) {
+            oper = generateAsmOper(instr,
+                    new InstrArgument(src),
+                    new InstrArgument(dst, InstrArgument.Type.Defn),
+                    new InstrArgument(offset));
+        } else {
+            oper = generateAsmOper(instr,
+                    new InstrArgument(dst, InstrArgument.Type.Defn),
+                    new InstrArgument(src),
+                    new InstrArgument(offset));
+        }
 
         addInstruction(oper);
         return null;
@@ -143,12 +151,7 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
     @Override
     public MemTemp visit(ImcCALL call, ImcInstr caller) {
 
-//        AsmOPER PUSHJInstr = generateAsmOper(Instructions.PUSHJ,
-//                new InstrArgument("$8"),
-//                new InstrArgument(call.label));
-
-        AsmOPER PUSHJInstr = new AsmOPER("PUSHJ $8, " + call.label.name, null, null, new Vector<>(List.of(call.label)));
-
+        AsmOPER PUSHJInstr = new AsmOPER("PUSHJ $8," + call.label.name, null, null, new Vector<>(List.of(call.label)));
         MemTemp stackPointerTemp = new MemTemp();
 
         AsmOPER addInstr = generateAsmOper(Instructions.ADD,
@@ -177,9 +180,25 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
         // third argument must be result of the fstResult
 
         // always definition. reuses temp if sub expr is const
-        InstrArgument firstArgument = binOp.sndExpr instanceof ImcCONST
-                ? new InstrArgument(sndResult, InstrArgument.Type.Defn)
-                : new InstrArgument(new MemTemp(), InstrArgument.Type.Defn);
+        InstrArgument firstArgument = null;
+
+        if(binOp.fstExpr instanceof ImcTEMP temp1 && temp1.temp.temp == RV.temp) {
+            firstArgument = new InstrArgument(fstResult, InstrArgument.Type.Defn);
+        }
+        else if(binOp.sndExpr instanceof ImcTEMP temp2 && temp2.temp.temp == RV.temp) {
+            firstArgument = new InstrArgument(fstResult, InstrArgument.Type.Defn);
+        }
+        else if(binOp.fstExpr instanceof ImcCONST) {
+            firstArgument = new InstrArgument(fstResult, InstrArgument.Type.Defn);
+        }
+        else if(binOp.sndExpr instanceof ImcCONST) {
+            firstArgument = new InstrArgument(sndResult, InstrArgument.Type.Defn);
+        }
+        else {
+            firstArgument = new InstrArgument(new MemTemp(), InstrArgument.Type.Defn);
+        }
+
+
 
         if(fstResult.equals(FP)) {
             Report.warning("FST RESULT is FP");
@@ -189,7 +208,8 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
         InstrArgument secondArgument = new InstrArgument(fstResult);
         InstrArgument thirdArgument  = new InstrArgument(sndResult);
 
-
+        // widely used results
+        AsmOPER cmpResult = generateAsmOper(Instructions.CMP, firstArgument, secondArgument, thirdArgument);
 
 
         switch (binOp.oper) {
@@ -205,10 +225,7 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
             }
             case AND -> {
 
-                AsmOPER result = generateAsmOper(Instructions.AND,
-                        firstArgument, secondArgument, thirdArgument
-
-                );
+                AsmOPER result = generateAsmOper(Instructions.AND, firstArgument, secondArgument, thirdArgument);
 
                 finalTemp = result.defs().firstElement();
                 addInstruction(result);
@@ -223,11 +240,6 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
                 addInstruction(result);
             }
             case EQU -> {
-                AsmOPER cmpResult = generateAsmOper(Instructions.CMP,
-                        firstArgument, secondArgument, thirdArgument
-
-                );
-
                 AsmOPER finalResult = generateAsmOper(Instructions.ZSZ,
                         firstArgument, secondArgument, new InstrArgument(one)
                 );
@@ -236,14 +248,9 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
                 addSomeInstructions(List.of(cmpResult, finalResult));
             }
             case LTH -> {
-                AsmOPER cmpResult = generateAsmOper(Instructions.CMP,
-                        firstArgument, secondArgument, thirdArgument
-
-                );
-
                 AsmOPER finalResult = generateAsmOper(Instructions.ZSN,  // zero or set if negative
                         firstArgument,
-                         secondArgument,
+                        firstArgument,
                         new InstrArgument(one)
                 );
 
@@ -251,11 +258,6 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
                 addSomeInstructions(List.of(cmpResult, finalResult));
             }
             case GTH -> {
-                AsmOPER cmpResult = generateAsmOper(Instructions.CMP,
-                        firstArgument, secondArgument, thirdArgument
-
-                );
-
                 AsmOPER finalResult = generateAsmOper(Instructions.ZSP,
                         firstArgument,
                          secondArgument,
@@ -266,11 +268,6 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
                 addSomeInstructions(List.of(cmpResult, finalResult));
             }
             case LEQ -> {
-                AsmOPER cmpResult = generateAsmOper(Instructions.CMP,
-                        firstArgument, secondArgument, thirdArgument
-
-                );
-
                 AsmOPER finalResult = generateAsmOper(Instructions.ZSNP,
                         firstArgument,
                          secondArgument,
@@ -281,11 +278,6 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
                 addSomeInstructions(List.of(cmpResult, finalResult));
             }
             case GEQ -> {
-                AsmOPER cmpResult = generateAsmOper(Instructions.CMP,
-                        firstArgument, secondArgument, thirdArgument
-
-                );
-
                 AsmOPER finalResult = generateAsmOper(Instructions.ZSNN,
                         firstArgument,
                          secondArgument,
@@ -300,7 +292,6 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
             case ADD -> {
                 AsmOPER finalResult = generateAsmOper(Instructions.ADD,
                         firstArgument, secondArgument, thirdArgument
-
                 );
 
                 finalTemp = finalResult.defs().firstElement();
@@ -310,7 +301,6 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
             case SUB -> {
                 AsmOPER finalResult = generateAsmOper(Instructions.SUB,
                         firstArgument, secondArgument, thirdArgument
-
                 );
 
                 finalTemp = finalResult.defs().firstElement();
@@ -329,7 +319,6 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
             case DIV -> {
                 AsmOPER finalResult = generateAsmOper(Instructions.DIV,
                         firstArgument, secondArgument, thirdArgument
-
                 );
 
                 finalTemp = finalResult.defs().firstElement();
@@ -391,10 +380,14 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
                 addInstruction(addResult);
             }
             case NEG -> {
+
+                ImcCONST zeroConst = new ImcCONST(0);
+                MemTemp zeroConstTemp = zeroConst.accept(this, null);
+
                 AsmOPER addResult = generateAsmOper(Instructions.SUB,
                         new InstrArgument(result , InstrArgument.Type.Defn),
-                        new InstrArgument(zero),
-                        new InstrArgument(result )
+                        new InstrArgument(zeroConstTemp),
+                        new InstrArgument(result)
                 );
 
                 finalTemp = addResult.defs().firstElement();
@@ -441,23 +434,41 @@ public class CodeGenerator implements ImcVisitor<MemTemp, ImcInstr> {
     public MemTemp visit(ImcCONST constant, ImcInstr caller) {
         MemTemp memTemp = new MemTemp();
 
-        List<String> opers = new ArrayList<>(List.of(Instructions.SETH, Instructions.SETMH, Instructions.SETML, Instructions.SETL));
-        String hex = Long.toHexString(constant.value);
-
-        if(hex.length() < 16)
-            hex = "0".repeat(16 - hex.length()) + hex;
-
-        for(int i = 0; i < 4; i++) {
-            String subString = hex.substring(i * 4, (i + 1) * 4);
-
-            AsmOPER oper = generateAsmOper(opers.get(i),
-                    new InstrArgument(memTemp, InstrArgument.Type.Defn),
-                    new InstrArgument("#" + subString));
-
-            addInstruction(oper);
-        }
+       addSomeInstructions(
+               generateNumberInstructions(memTemp, constant.value));
 
         return memTemp;
+    }
+
+    public static List<AsmInstr> generateNumberInstructions(MemTemp memTemp, long value) {
+        long first = value >> 0 & 0xFFFF;
+        long second = value >> 16 & 0xFFFF;
+        long third = value >> 32 & 0xFFFF;
+        long fourth = value >> 48 & 0xFFFF;
+
+        List<AsmInstr> list = new ArrayList<>();
+
+        list.add(generateAsmOper(
+                Instructions.SETL,
+                new InstrArgument(memTemp, InstrArgument.Type.Defn),
+                new InstrArgument(first)));
+
+        list.add(generateAsmOper(
+                Instructions.INCML,
+                new InstrArgument(memTemp, InstrArgument.Type.Defn),
+                new InstrArgument(second)));
+
+        list.add(generateAsmOper(
+                Instructions.INCMH,
+                new InstrArgument(memTemp, InstrArgument.Type.Defn),
+                new InstrArgument(third)));
+
+        list.add(generateAsmOper(
+                Instructions.INCH,
+                new InstrArgument(memTemp, InstrArgument.Type.Defn),
+                new InstrArgument(fourth)));
+
+        return list;
     }
 
     @Override

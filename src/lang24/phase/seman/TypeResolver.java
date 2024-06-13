@@ -406,6 +406,10 @@ public class TypeResolver implements AstFullVisitor<SemType, Object/*** TODO OR 
 //			resultType = type.
 //	}
 
+	/**
+	 * struct x;
+	 * x.a = 32;
+	 */
 	@Override
 	public SemType visit(AstCmpExpr cmpExpr, Object arg) {
 

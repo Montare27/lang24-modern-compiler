@@ -9,6 +9,7 @@ UNI_ID = 70092585
 
 NAME = lexan
 ZIP = false
+OUT = out
 
 all	:
 	if [ -d src/lang24/phase/lexan ] ; then $(MAKE) -C src/lang24/phase/lexan ; fi
@@ -36,9 +37,20 @@ run:
 	$(MAKE) all
 	$(MAKE) run2
 
+run3:
+	$(MAKE) run2
+	$(MAKE) execute
 
 run2:
-	if [ -d prg ] ; then $(MAKE) -C prg test TARGETPHASE=livean K=4; fi
+	if [ -d prg ] ; then $(MAKE) -C prg bubblesort TARGETPHASE=regall K=4; fi
+
+
+# "-x" to avoid error "-b 65536" - buffer size
+execute:
+	@./mmixal -x -b 65536 prg/$(OUT).mms
+	@./mmix prg/$(OUT).mmo
+	#clear && ./mmixal -x -b 256 prg/$(OUT).mms && ./mmix prg/$(OUT).mmo
+
 
 deploy:
 	$(MAKE) clean

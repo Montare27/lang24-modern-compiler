@@ -1,0 +1,11 @@
+putchar(c: char) : void
+putint(i: int) : void
+
+main() : int = {
+
+    i = 5;
+    putint(i);
+
+} {
+    i: int
+}

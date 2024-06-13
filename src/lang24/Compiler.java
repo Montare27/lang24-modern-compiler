@@ -5,6 +5,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.util.*;
 import lang24.common.report.*;
+import lang24.phase.end.PutItAllTogether;
 import lang24.phase.lexan.*;
 import lang24.phase.livean.LiveAn;
 import lang24.phase.regall.RegAll;
@@ -251,8 +252,7 @@ public class Compiler {
 				if (cmdLineOptValues.get("--target-phase").equals("regall"))
 					break;
 
-
-				// todo: Put it all together
+				new PutItAllTogether().start();
 
 				break;
 			}

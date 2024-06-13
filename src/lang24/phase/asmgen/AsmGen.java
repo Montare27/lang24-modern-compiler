@@ -74,6 +74,7 @@ public class AsmGen extends Phase {
 	 */
 	private Code processLinCodeChunkIntoCode(LinCodeChunk linCodeChunk) {
 		CodeGenerator.FP = linCodeChunk.frame.FP;
+		CodeGenerator.RV = linCodeChunk.frame.RV;
 
 		processStatements(linCodeChunk.stmts());  // processes each statement
 

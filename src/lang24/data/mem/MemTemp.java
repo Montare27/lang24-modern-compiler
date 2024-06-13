@@ -23,8 +23,5 @@ public class MemTemp {
 	public String toString() {
 		return "T" + temp;
 	}
-
-	public void resetCounter() {
-		count = 0;
-	}
 }
+

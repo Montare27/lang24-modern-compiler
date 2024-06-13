@@ -15,6 +15,9 @@ public class Instructions {
     public static String SETMH = "SETMH";
     public static String SETML = "SETML";
     public static String SETL = "SETL";
+    public static String INCML = "INCML";
+    public static String INCMH = "INCMH";
+    public static String INCH = "INCH";
 
     /* Arithmetic instructions */
     public static String ADD = "ADD";

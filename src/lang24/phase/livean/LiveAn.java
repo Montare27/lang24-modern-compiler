@@ -1,5 +1,6 @@
 package lang24.phase.livean;
 
+import lang24.common.report.Report;
 import lang24.data.mem.*;
 import lang24.data.asm.*;
 import lang24.phase.*;
@@ -22,6 +23,7 @@ public class LiveAn extends Phase {
 
 	public void analysis() {
 		for(Code code : AsmGen.codes) {
+			Report.info("Instr size " + code.frame.label.name + "=" + code.instrs.size());
 			processInstructions(code.instrs);
 		}
 	}
